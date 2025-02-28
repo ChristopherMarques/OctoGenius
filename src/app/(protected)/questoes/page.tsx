@@ -12,7 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { Search, Filter, BookOpen, CheckCircle, XCircle, ArrowRight, Clock } from "lucide-react";
-import { useToast } from "@/src/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 // Dados simulados para o banco de questões
 const disciplinas = [
@@ -366,8 +366,8 @@ export default function QuestoesPage() {
                         <div
                           key={alternativa.id}
                           className={`flex items-start space-x-2 border p-4 rounded-md transition-colors ${isCorrect ? "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800" :
-                              isIncorrect ? "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800" :
-                                "hover:bg-muted/50"
+                            isIncorrect ? "bg-red-50 border-red-200 dark:bg-red-900/20 dark:border-red-800" :
+                              "hover:bg-muted/50"
                             }`}
                         >
                           <RadioGroupItem
