@@ -6,14 +6,14 @@ import { Database } from "@/database/types/database.types";
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
   throw new Error("Missing env.NEXT_PUBLIC_SUPABASE_URL");
 }
-if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-  throw new Error("Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY");
+if (!process.env.SUPABASE_ANON_KEY) {
+  throw new Error("Missing env.SUPABASE_ANON_KEY");
 }
 
 // 🚀 Cliente Supabase para o CLIENTE (Autenticação e Usuário)
 export const supabase = createClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  process.env.SUPABASE_ANON_KEY,
   {
     global: {
       fetch: (url, options) =>
