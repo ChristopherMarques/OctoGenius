@@ -14,6 +14,11 @@ export function SocialLogin() {
         router.replace('/')
     }
 
+    const handleSignIn = async () => {
+        await signIn('google')
+        router.replace('/dashboard')
+    }
+
     if (session) {
         return (
             <Button
@@ -30,7 +35,7 @@ export function SocialLogin() {
         <Button
             className="w-full border"
             variant="outline"
-            onClick={() => signIn('google')}
+            onClick={handleSignIn}
         >
             <FcGoogle className="mr-2 h-4 w-4" />
             Continuar com Google
