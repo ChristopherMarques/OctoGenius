@@ -10,7 +10,7 @@ export function withRateLimit(
   return async (request: NextRequest) => {
     const identifier =
       options?.identifier?.(request) ||
-      `${request.ip}:${request.nextUrl.pathname}`;
+      `${request.headers.get("x-forwarded-for")}:${request.nextUrl.pathname}`;
 
     const result = await getRateLimitResult(identifier);
 

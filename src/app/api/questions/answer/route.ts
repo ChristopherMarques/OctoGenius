@@ -89,6 +89,8 @@ export const POST = withRateLimit(
   },
   {
     identifier: (request) =>
-      `${request.ip}:answer:${new URL(request.url).searchParams.get("userId")}`,
+      `${request.headers.get("x-forwarded-for")}:answer:${new URL(
+        request.url
+      ).searchParams.get("userId")}`,
   }
 );
