@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { apiResponse } from "@/lib/utils/api-response";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
@@ -10,7 +10,7 @@ async function handleGet(request: NextRequest) {
 
     if (!userId) throw new Error("User ID is required");
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("user_achievements")
       .select(
         `
@@ -36,7 +36,7 @@ async function handlePost(request: NextRequest) {
     if (!userId) throw new Error("User ID is required");
     if (!achievementId) throw new Error("Achievement ID is required");
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("user_achievements")
       .insert({
         user_id: userId,

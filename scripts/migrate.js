@@ -1,11 +1,11 @@
-const { createClient } = require("@supabase/supabase-js");
+// const { createClient } = require("@supabase/supabase-js");
 const fs = require("fs");
 const path = require("path");
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
+// const supabaseUrl = process.env.SUPABASE_URL;
+// const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY;
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+// const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function runMigrations() {
   const migrationsDir = path.join(__dirname, "../src/database/migrations");
@@ -16,10 +16,10 @@ async function runMigrations() {
     const migration = fs.readFileSync(path.join(migrationsDir, file), "utf8");
 
     try {
-      await supabase.from("migrations").insert({
-        name: file,
-        executed_at: new Date().toISOString(),
-      });
+      // await supabase.from("migrations").insert({
+      //   name: file,
+      //   executed_at: new Date().toISOString(),
+      // });
 
       const { error } = await supabase.rpc("run_sql", {
         sql: migration,

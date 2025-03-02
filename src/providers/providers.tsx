@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
-import { SessionContextProvider } from '@supabase/auth-helpers-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { SessionProvider } from 'next-auth/react'
+import { UserProvider } from '@/contexts/user-context'
 
 export function Providers({ children }: { children: React.ReactNode }) {
     const [queryClient] = useState(() => new QueryClient({
@@ -15,13 +15,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
         },
     }))
 
-    const [supabaseClient] = useState(() => createClientComponentClient())
-
     return (
-        <SessionContextProvider supabaseClient={supabaseClient}>
-            <QueryClientProvider client={queryClient}>
-                {children}
-            </QueryClientProvider>
-        </SessionContextProvider>
-    )
+        <SessionProvider>
+            <UserProvider>
+                <QueryClientProvider client={queryClient}>
+                    {children}
+                </QueryClientProvider>
+            </UserProvider>
+        </SessionProvider>
+    );
 }

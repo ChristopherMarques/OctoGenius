@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { BookOpen, CheckCircle, Clock, Trophy, BarChart3, Calendar, ArrowRight, Brain } from "lucide-react";
+import { useUser } from "@/contexts/user-context";
 
 // Dados simulados para o dashboard
 const disciplinas = [
@@ -48,6 +49,8 @@ const CORES = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3)
 
 export default function DashboardPage() {
   const [atividadesConcluidas, setAtividadesConcluidas] = useState<number[]>([1]);
+  const { user } = useUser();
+  const name = user?.full_name?.split(" ")[0];
 
   const marcarConcluida = (id: number) => {
     if (atividadesConcluidas.includes(id)) {
@@ -68,7 +71,7 @@ export default function DashboardPage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl 2xl:max-w-[1400px]">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold">Olá, Estudante!</h1>
+              <h1 className="text-3xl font-bold">Olá, {name}!</h1>
               <p className="text-muted-foreground">Bem-vindo ao seu painel de estudos personalizado</p>
             </div>
             <div className="mt-4 md:mt-0">

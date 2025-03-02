@@ -1,33 +1,30 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
-import { supabase } from "@/lib/supabase";
+import { getToken } from "next-auth/jwt";
+import { NextRequest, NextResponse } from "next/server";
+import { showLogs } from "./lib/utils/show-logs";
 
-export async function middleware(request: NextRequest) {
-  try {
-    // Verificar a sessão
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
+// Definindo as rotas que podem ser acessadas sem autenticação
+const publicRoutes = ["/", "/auth", "/api/auth/*"];
 
-    // Rotas que não precisam de autenticação
-    const publicRoutes = ["/", "/auth/callback"];
-    const isPublicRoute = publicRoutes.some(
-      (route) =>
-        request.nextUrl.pathname === route ||
-        request.nextUrl.pathname.startsWith("/auth/")
-    );
+const secret = process.env.AUTH_SECRET; // Certifique-se de que o segredo está definido
 
-    // Se não há sessão e a rota não é pública, redirecionar para home
-    if (!session && !isPublicRoute) {
-      return NextResponse.redirect(new URL("/", request.url));
-    }
+export const middleware = async (req: NextRequest) => {
+  showLogs("Verificando autenticação...");
+  const token = await getToken({ req, secret }); // Verifica se o usuário está autenticado
+  const isAuthenticated = !!token; // Verifica se o token existe
+  showLogs(`Autenticação: ${isAuthenticated}`);
 
-    return NextResponse.next();
-  } catch (error) {
-    console.error("Middleware error:", error);
-    return NextResponse.redirect(new URL("/", request.url));
+  // Verifica se a rota é pública
+  const isPublicRoute = publicRoutes.some((route) =>
+    req.nextUrl.pathname.startsWith(route)
+  );
+
+  // Se não estiver autenticado e a rota não for pública, redireciona para a página de login
+  if (!isAuthenticated && !isPublicRoute) {
+    return NextResponse.redirect(new URL("/", req.url));
   }
-}
+
+  return NextResponse.next(); // Permite o acesso à rota
+};
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|public).*)"],

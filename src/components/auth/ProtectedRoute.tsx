@@ -2,23 +2,23 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/hooks/auth/useAuth';
+import { useSession } from 'next-auth/react';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-    const { user, isLoading } = useAuth();
+    const { data: session, status } = useSession();
     const router = useRouter();
 
     useEffect(() => {
-        if (!isLoading && !user) {
-            router.push('/');
+        if (status === 'unauthenticated') {
+            router.replace('/');
         }
-    }, [user, isLoading, router]);
+    }, [session, router, status]);
 
-    if (isLoading) {
+    if (status === 'loading') {
         return <div>Loading...</div>;
     }
 
-    if (!user) {
+    if (status === 'unauthenticated') {
         return null;
     }
 
