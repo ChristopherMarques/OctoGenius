@@ -67,10 +67,7 @@ export function Header() {
                   </Link>
                   <div className="flex flex-col gap-2 mt-4">
                     <Button variant="outline" asChild>
-                      <Link href="/login" onClick={() => setIsOpen(false)}>Entrar</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href="/cadastro" onClick={() => setIsOpen(false)}>Cadastrar</Link>
+                      <SocialLogin />
                     </Button>
                   </div>
                 </div>
