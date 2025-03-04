@@ -15,8 +15,7 @@ export function SocialLogin() {
     }
 
     const handleSignIn = async () => {
-        await signIn('google')
-        router.replace('/dashboard')
+        await signIn('google', { callbackUrl: '/dashboard' })
     }
 
     if (session) {

@@ -20,6 +20,10 @@ const authOptions: AuthOptions = {
     }),
   ],
   secret: process.env.AUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 1.5 * 60 * 60, // 1 hora e meia
+  },
   pages: {
     error: "/auth/error",
     signIn: "/auth/signin",

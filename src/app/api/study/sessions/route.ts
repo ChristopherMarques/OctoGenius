@@ -1,9 +1,9 @@
-import { supabase } from "@/lib/supabase";
-import { apiResponse } from "@/lib/utils/api-response";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import {
   CreateStudySessionRequest,
   UpdateStudySessionRequest,
 } from "@/types/api/requests";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   try {
@@ -12,15 +12,18 @@ export async function GET(request: Request) {
 
     if (!planId) throw new Error("Plan ID is required");
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("study_sessions")
       .select("*")
       .eq("study_plan_id", planId);
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
@@ -28,16 +31,19 @@ export async function POST(request: Request) {
   try {
     const body: CreateStudySessionRequest = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("study_sessions")
       .insert(body)
       .select()
       .single();
 
     if (error) throw error;
-    return apiResponse.success(data, 201);
+    return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
@@ -49,7 +55,7 @@ export async function PATCH(request: Request) {
 
     const body: UpdateStudySessionRequest = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("study_sessions")
       .update(body)
       .eq("id", sessionId)
@@ -57,8 +63,11 @@ export async function PATCH(request: Request) {
       .single();
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }

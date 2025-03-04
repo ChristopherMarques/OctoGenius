@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase";
-import { apiResponse } from "@/lib/utils/api-response";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import { SubmitAnswerRequest } from "@/types/api/requests";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,7 +12,7 @@ async function handlePost(request: NextRequest) {
     const body: SubmitAnswerRequest = await request.json();
 
     // Get the correct answer
-    const { data: question, error: questionError } = await supabase
+    const { data: question, error: questionError } = await supabaseAdmin
       .from("questions")
       .select(
         `
@@ -35,7 +34,7 @@ async function handlePost(request: NextRequest) {
     }
 
     // Save the answer
-    const { data: answer, error: answerError } = await supabase
+    const { data: answer, error: answerError } = await supabaseAdmin
       .from("user_answers")
       .insert({
         user_id: userId,
@@ -51,7 +50,7 @@ async function handlePost(request: NextRequest) {
     if (answerError) throw answerError;
 
     // Update progress
-    const { data: subject, error: subjectError } = await supabase
+    const { data: subject, error: subjectError } = await supabaseAdmin
       .from("subjects")
       .select("id")
       .eq("id", question.subject_id)
@@ -59,7 +58,7 @@ async function handlePost(request: NextRequest) {
 
     if (subjectError) throw subjectError;
 
-    const { error: progressError } = await supabase
+    const { error: progressError } = await supabaseAdmin
       .from("subject_progress")
       .upsert(
         {
@@ -77,9 +76,12 @@ async function handlePost(request: NextRequest) {
 
     if (progressError) throw progressError;
 
-    return apiResponse.success(answer, 201);
+    return NextResponse.json({ success: true, data: answer }, { status: 201 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 

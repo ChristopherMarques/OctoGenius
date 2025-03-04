@@ -7,6 +7,7 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { HeroSection } from "@/components/hero-section";
 import { FeatureSection } from "@/components/feature-section";
+import PlanCards from "@/components/plans/plan-cards";
 
 export default function Home() {
   return (
@@ -58,10 +59,10 @@ export default function Home() {
               </Card>
             </div>
 
-            <div className="mt-12 text-center">
-              <Button asChild size="lg">
-                <Link href="/cadastro">Comece Agora</Link>
-              </Button>
+            <h2 className="text-3xl font-bold text-center mt-16 mb-12">Escolha seu Plano</h2>
+
+            <div className="flex justify-center w-full ">
+              <PlanCards />
             </div>
           </div>
         </section>

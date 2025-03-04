@@ -1,5 +1,4 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { apiResponse } from "@/lib/utils/api-response";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -21,9 +20,12 @@ async function handleGet(request: NextRequest) {
       .eq("user_id", userId);
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json({
+      success: false,
+      error: (error as Error).message,
+    });
   }
 }
 
@@ -51,9 +53,12 @@ async function handlePost(request: NextRequest) {
       .single();
 
     if (error) throw error;
-    return apiResponse.success(data, 201);
+    return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 

@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase";
-import { apiResponse } from "@/lib/utils/api-response";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import {
   CreateStudyPlanRequest,
@@ -14,7 +13,7 @@ async function handleGet(request: NextRequest) {
 
     if (!userId) throw new Error("User ID is required");
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("study_plans")
       .select(
         `
@@ -25,9 +24,12 @@ async function handleGet(request: NextRequest) {
       .eq("user_id", userId);
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
@@ -35,16 +37,19 @@ async function handlePost(request: NextRequest) {
   try {
     const body: CreateStudyPlanRequest = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("study_plans")
       .insert(body)
       .select()
       .single();
 
     if (error) throw error;
-    return apiResponse.success(data, 201);
+    return NextResponse.json({ success: true, data }, { status: 201 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
@@ -56,7 +61,7 @@ async function handlePatch(request: NextRequest) {
 
     const body: UpdateStudyPlanRequest = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("study_plans")
       .update(body)
       .eq("id", planId)
@@ -64,9 +69,12 @@ async function handlePatch(request: NextRequest) {
       .single();
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 

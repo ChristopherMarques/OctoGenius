@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase";
-import { apiResponse } from "@/lib/utils/api-response";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import { UpdateProgressRequest } from "@/types/api/requests";
 import { NextRequest, NextResponse } from "next/server";
@@ -11,7 +10,7 @@ async function handleGet(request: NextRequest) {
 
     if (!userId) throw new Error("User ID is required");
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("subject_progress")
       .select(
         `
@@ -25,9 +24,12 @@ async function handleGet(request: NextRequest) {
       .eq("user_id", userId);
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
@@ -39,7 +41,7 @@ async function handlePatch(request: NextRequest) {
 
     const body: UpdateProgressRequest = await request.json();
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("subject_progress")
       .upsert(
         {
@@ -58,9 +60,12 @@ async function handlePatch(request: NextRequest) {
       .single();
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 

@@ -131,3 +131,24 @@ export interface DailyStat {
   subjects_reviewed?: number; // INTEGER
   streak_days?: number; // INTEGER
 }
+
+export interface Plan {
+  id: string; // UUID
+  name: string; // TEXT
+  features: string[]; // TEXT[]
+  price: string; // TEXT
+  stripe_price_id: string; // TEXT
+  created_at: string; // TIMESTAMP WITH TIME ZONE
+  updated_at: string; // TIMESTAMP WITH TIME ZONE
+}
+
+export interface Subscription {
+  id: string; // UUID
+  user_id: string; // UUID
+  plan_id: string; // UUID
+  stripe_subscription_id: string; // TEXT
+  status: "active" | "canceled" | "expired"; // TEXT
+  payment_status: "paid" | "pending" | "failed"; // TEXT
+  created_at: string; // TIMESTAMP WITH TIME ZONE
+  updated_at: string; // TIMESTAMP WITH TIME ZONE
+}

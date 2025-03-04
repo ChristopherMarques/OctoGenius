@@ -1,0 +1,49 @@
+"use client";
+
+import { Spinner } from "@/components/ui/spinner";
+import { useUser } from "@/contexts/user-context";
+import { useSearchParams } from "next/navigation";
+import { useEffect } from "react";
+
+const RedirectPlan = () => {
+    const searchParams = useSearchParams();
+    const { user } = useUser();
+
+    useEffect(() => {
+        const priceId = searchParams.get("priceId");
+        if (!priceId || !user?.id) {
+            console.log("Não tem priceId ou user.id", priceId, user?.id);
+            return;
+        }
+        const createCheckoutSession = async () => {
+            try {
+                const res = await fetch("/api/create-checkout", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        user_id: user?.id,
+                        price_id: priceId,
+                    }),
+                });
+
+                const data = await res.json();
+
+                if (data.checkout_url) {
+                    window.location.href = data.checkout_url;
+                } else {
+                    console.error("Erro ao obter URL do checkout.");
+                    window.location.href = "/";
+                }
+            } catch (error) {
+                console.error("Erro no checkout:", error);
+                window.location.href = "/";
+            }
+        };
+
+        createCheckoutSession();
+    }, [searchParams, user]);
+
+    return <Spinner />;
+};
+
+export default RedirectPlan;

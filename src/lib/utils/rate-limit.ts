@@ -1,4 +1,4 @@
-import { supabase } from "../supabase";
+import { supabaseAdmin } from "../supabaseAdmin";
 
 interface RateLimitResult {
   success: boolean;
@@ -18,7 +18,7 @@ export class RateLimiter {
 
   async limit(identifier: string): Promise<RateLimitResult> {
     try {
-      const { data, error } = await supabase.rpc("check_rate_limit", {
+      const { data, error } = await supabaseAdmin.rpc("check_rate_limit", {
         p_identifier: identifier,
         p_max_hits: this.maxHits,
         p_window_seconds: this.windowSeconds,

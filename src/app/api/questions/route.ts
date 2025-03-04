@@ -1,5 +1,4 @@
-import { supabase } from "@/lib/supabase";
-import { apiResponse } from "@/lib/utils/api-response";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import { CreateQuestionRequest } from "@/types/api/requests";
 import { NextRequest, NextResponse } from "next/server";
@@ -9,7 +8,7 @@ async function handleGet(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const subjectId = searchParams.get("subjectId");
 
-    const query = supabase.from("questions").select(`
+    const query = supabaseAdmin.from("questions").select(`
         *,
         question_alternatives (*)
       `);
@@ -21,9 +20,12 @@ async function handleGet(request: NextRequest) {
     const { data, error } = await query;
 
     if (error) throw error;
-    return apiResponse.success(data);
+    return NextResponse.json({ success: true, data });
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
@@ -32,7 +34,7 @@ async function handlePost(request: NextRequest) {
     const { alternatives, ...questionData }: CreateQuestionRequest =
       await request.json();
 
-    const { data: question, error: questionError } = await supabase
+    const { data: question, error: questionError } = await supabaseAdmin
       .from("questions")
       .insert(questionData)
       .select()
@@ -41,7 +43,7 @@ async function handlePost(request: NextRequest) {
     if (questionError) throw questionError;
 
     if (alternatives && alternatives.length > 0) {
-      const { error: alternativesError } = await supabase
+      const { error: alternativesError } = await supabaseAdmin
         .from("question_alternatives")
         .insert(
           alternatives.map((alt) => ({
@@ -53,9 +55,15 @@ async function handlePost(request: NextRequest) {
       if (alternativesError) throw alternativesError;
     }
 
-    return apiResponse.success(question, 201);
+    return NextResponse.json(
+      { success: true, data: question },
+      { status: 201 }
+    );
   } catch (error) {
-    return apiResponse.error((error as Error).message);
+    return NextResponse.json(
+      { success: false, error: (error as Error).message },
+      { status: 400 }
+    );
   }
 }
 
