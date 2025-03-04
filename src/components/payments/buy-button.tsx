@@ -4,9 +4,11 @@ import { useState } from "react";
 import { Button } from "../ui/button";
 import { signIn, useSession } from "next-auth/react";
 import { useUser } from "@/contexts/user-context";
+import { useRouter } from "next/navigation";
 
 export default function BuyButton({ priceId, planName }: { priceId: string, planName: string }) {
     const [loading, setLoading] = useState(false);
+    const router = useRouter();
     const { status } = useSession();
     const { user } = useUser();
 
@@ -17,9 +19,7 @@ export default function BuyButton({ priceId, planName }: { priceId: string, plan
             await signIn('google', { callbackUrl: `/redirect-plan?priceId=${priceId}` });
             return;
         }
-
         setLoading(true);
-
         try {
             const userId = user?.id;
 
@@ -32,7 +32,7 @@ export default function BuyButton({ priceId, planName }: { priceId: string, plan
             const data = await res.json();
 
             if (data.checkout_url) {
-                window.location.href = data.checkout_url;
+                router.replace(data.checkout_url);
             } else {
                 console.error("Erro ao obter URL do checkout.");
             }
