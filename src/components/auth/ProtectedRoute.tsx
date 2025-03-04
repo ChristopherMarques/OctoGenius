@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSession } from 'next-auth/react';
+import { Spinner } from '../ui/spinner';
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     const { data: session, status, update } = useSession();
@@ -25,7 +26,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
     }, [session, update]);
 
     if (status === 'loading') {
-        return <div>Loading...</div>;
+        return <div className='flex justify-center items-center h-screen w-screen'><Spinner /></div>;
     }
 
     if (status === 'unauthenticated') {
