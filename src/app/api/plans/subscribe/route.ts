@@ -1,26 +1,28 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 
-async function handler(req: NextApiRequest, res: NextApiResponse) {
+async function handler(req: NextRequest) {
   if (req.method === "POST") {
-    const { user_id, plan_id } = req.body;
+    const { user_id, plan_id } = await req.json();
 
     if (!user_id || !plan_id) {
-      return res.status(400).json({ error: "Dados incompletos" });
+      return NextResponse.json({ error: "Dados incompletos" }, { status: 400 });
     }
 
     const { data, error } = await supabaseAdmin
       .from("subscriptions")
       .insert([{ user_id, plan_id, status: "active" }]);
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error)
+      return NextResponse.json({ error: error.message }, { status: 500 });
 
-    return res
-      .status(200)
-      .json({ message: "Assinatura realizada com sucesso", data });
+    return NextResponse.json(
+      { message: "Assinatura realizada com sucesso", data },
+      { status: 200 }
+    );
   }
 
-  return res.status(405).json({ error: "Método não permitido" });
+  return NextResponse.json({ error: "Método não permitido" }, { status: 405 });
 }
 
 export { handler as POST };
