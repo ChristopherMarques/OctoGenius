@@ -2,7 +2,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import stripe from "@/lib/stripe";
 import { NextRequest, NextResponse } from "next/server";
 
-async function handler(req: NextRequest) {
+export async function POST(req: NextRequest) {
   try {
     if (req.method !== "POST") {
       return NextResponse.json(
@@ -58,5 +58,3 @@ async function handler(req: NextRequest) {
     );
   }
 }
-
-export { handler as POST };
