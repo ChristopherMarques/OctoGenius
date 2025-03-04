@@ -33,8 +33,8 @@ export async function POST(req: NextRequest) {
         payment_method_types: ["card"],
         line_items: [{ price: price_id, quantity: 1 }],
         mode: "subscription",
-        success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/dashboard`,
-        cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard`,
+        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
         metadata: { user_id: user_id, price_id: price_id },
       })
       .catch((error) => {
