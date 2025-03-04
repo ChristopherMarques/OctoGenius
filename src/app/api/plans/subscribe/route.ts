@@ -1,10 +1,7 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextApiRequest, NextApiResponse } from "next";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
+async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === "POST") {
     const { user_id, plan_id } = req.body;
 
