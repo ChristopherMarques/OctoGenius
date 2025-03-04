@@ -1,26 +1,34 @@
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
-import { NextApiRequest, NextApiResponse } from "next";
+import { NextRequest, NextResponse } from "next/server";
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  if (req.method === "GET") {
-    const { user_id } = req.query;
+export async function GET(req: NextRequest) {
+  const user_id = req.nextUrl.searchParams.get("user_id");
 
-    if (!user_id)
-      return res.status(400).json({ error: "Usuário não especificado" });
+  if (!user_id) {
+    return NextResponse.json(
+      { error: "Usuário não especificado" },
+      { status: 400 }
+    );
+  }
 
+  try {
     const { data, error } = await supabaseAdmin
       .from("subscriptions")
       .select("*, plans(*)")
       .eq("user_id", user_id)
       .single();
 
-    if (error) return res.status(500).json({ error: error.message });
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
 
-    return res.status(200).json(data);
+    return NextResponse.json(data, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Erro interno no servidor" },
+      { status: 500 }
+    );
   }
-
-  return res.status(405).json({ error: "Método não permitido" });
 }
+
+export const dynamic = "force-static";
