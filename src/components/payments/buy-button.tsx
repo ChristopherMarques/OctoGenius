@@ -3,10 +3,12 @@
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { signIn, useSession } from "next-auth/react";
+import { useUser } from "@/contexts/user-context";
 
 export default function BuyButton({ priceId, planName }: { priceId: string, planName: string }) {
     const [loading, setLoading] = useState(false);
-    const { data: session, status } = useSession();
+    const { status } = useSession();
+    const { user } = useUser();
 
     async function handleCheckout() {
         if (status !== "authenticated") {
@@ -19,7 +21,7 @@ export default function BuyButton({ priceId, planName }: { priceId: string, plan
         setLoading(true);
 
         try {
-            const userId = session?.user?.id;
+            const userId = user?.id;
 
             const res = await fetch("/api/create-checkout", {
                 method: "POST",
