@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextApiRequest, NextApiResponse } from "next";
 
 export default async function handler(
@@ -12,7 +12,7 @@ export default async function handler(
       return res.status(400).json({ error: "Dados incompletos" });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("subscriptions")
       .insert([{ user_id, plan_id, status: "active" }]);
 
@@ -25,3 +25,5 @@ export default async function handler(
 
   return res.status(405).json({ error: "Método não permitido" });
 }
+
+export { handler as POST };
