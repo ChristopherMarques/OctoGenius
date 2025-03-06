@@ -109,6 +109,11 @@
   resolved "https://registry.yarnpkg.com/@floating-ui/utils/-/utils-0.2.9.tgz#50dea3616bc8191fb8e112283b49eaff03e78429"
   integrity sha512-MDWhGtE+eHw5JW7lq4qhc5yRLS11ERl1c7Z6Xd0a58DozHES6EnNNwUWbMiG4J9Cgj053Bhk8zvlhFYKVhULwg==
 
+"@google/generative-ai@^0.23.0":
+  version "0.23.0"
+  resolved "https://registry.yarnpkg.com/@google/generative-ai/-/generative-ai-0.23.0.tgz#e5b8add3a394ae7c64b46ca06c85540d8ac65d55"
+  integrity sha512-8vGoguvLG22U3t9XpXvbxjxy/yfBhE27pqptz5QVKXwBSh9sUXXmZWS8ZdGMqifK7kiuZQCG2cjGJNUdBsgX+g==
+
 "@hookform/resolvers@^4.1.2":
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/@hookform/resolvers/-/resolvers-4.1.2.tgz#f2fe5ddc2341430a8559b53a8d5557b87e8636d4"
