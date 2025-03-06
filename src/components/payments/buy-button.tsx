@@ -5,6 +5,7 @@ import { Button } from "../ui/button";
 import { signIn, useSession } from "next-auth/react";
 import { useUser } from "@/contexts/user-context";
 import { useRouter } from "next/navigation";
+import { checkPlan } from "@/lib/utils/check-plan";
 
 export default function BuyButton({ priceId, planName }: { priceId: string, planName: string }) {
     const [loading, setLoading] = useState(false);
@@ -20,6 +21,11 @@ export default function BuyButton({ priceId, planName }: { priceId: string, plan
             return;
         }
         setLoading(true);
+        const { alreadyHasPlan } = await checkPlan(user?.id, priceId);
+        if (alreadyHasPlan) {
+            router.push("/plan-already-active");
+            return;
+        }
         try {
             const userId = user?.id;
 

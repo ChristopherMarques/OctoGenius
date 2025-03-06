@@ -1,32 +1,20 @@
-import { supabase } from "@/lib/supabase";
-import { NextApiRequest, NextApiResponse, NextApiHandler } from "next";
+import { supabaseAdmin } from "../supabaseAdmin";
 
-export default function checkPlanAccess(requiredPlan: string) {
-  return async (
-    req: NextApiRequest,
-    res: NextApiResponse,
-    next: NextApiHandler
-  ) => {
-    const { user_id } = req.body || req.query;
+export const checkPlan = async (userId: string, priceId: string) => {
+  const { data, error } = await supabaseAdmin
+    .from("subscriptions")
+    .select("*, plans(stripe_price_id)")
+    .eq("user_id", userId)
+    .single();
 
-    if (!user_id)
-      return res.status(401).json({ error: "Usuário não autenticado" });
+  if (error || !data) {
+    return { alreadyHasPlan: false, subscription: null };
+  }
 
-    const { data, error } = await supabase
-      .from("subscriptions")
-      .select("*, plans(name)")
-      .eq("user_id", user_id)
-      .single();
+  const alreadyHasPlan = data.plans.stripe_price_id === priceId;
 
-    if (error || !data)
-      return res.status(403).json({ error: "Assinatura não encontrada" });
-
-    if (data.plans.name !== requiredPlan) {
-      return res
-        .status(403)
-        .json({ error: "Plano insuficiente para este recurso" });
-    }
-
-    next(req, res);
+  return {
+    alreadyHasPlan,
+    subscription: data,
   };
-}
+};

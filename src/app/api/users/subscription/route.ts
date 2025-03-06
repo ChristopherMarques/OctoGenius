@@ -2,7 +2,8 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
-  const user_id = req.nextUrl.searchParams.get("user_id");
+  const { searchParams } = new URL(req.url);
+  const user_id = searchParams.get("user_id");
 
   if (!user_id) {
     return NextResponse.json(
@@ -30,5 +31,3 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
-export const dynamic = "force-static";

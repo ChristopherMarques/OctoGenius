@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreateUserRequest, UpdateUserRequest } from "@/types/api/requests";
 
-export const useUser = (userId: string) => {
+export const useUser = (userEmail: string | null) => {
   return useQuery({
-    queryKey: ["users", userId],
+    queryKey: ["users", userEmail],
     queryFn: async () => {
-      const response = await fetch(`/api/users?userId=${userId}`);
+      const response = await fetch(`/api/users?userEmail=${userEmail}`);
       const data = await response.json();
       if (!data.success) throw new Error(data.error);
       return data.data;

@@ -10,8 +10,6 @@ CREATE TABLE users (
     school TEXT,
     target_exam TEXT[],
     study_goal TEXT,
-    subscription_status VARCHAR(20) DEFAULT 'active',
-    plan_id uuid REFERENCES plans(id),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

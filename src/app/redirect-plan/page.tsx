@@ -2,8 +2,9 @@
 
 import { Spinner } from "@/components/ui/spinner";
 import { useUser } from "@/contexts/user-context";
+import { checkPlan } from "@/lib/utils/check-plan";
 import { useSearchParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const RedirectPlan = () => {
     const searchParams = useSearchParams();
@@ -15,8 +16,17 @@ const RedirectPlan = () => {
             console.log("Não tem priceId ou user.id", priceId, user?.id);
             return;
         }
+
+
         const createCheckoutSession = async () => {
+            const { alreadyHasPlan } = await checkPlan(user?.id, priceId);
+
             try {
+                if (alreadyHasPlan) {
+                    window.location.href = "/plan-already-active";
+                    return;
+                }
+
                 const res = await fetch("/api/create-checkout", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

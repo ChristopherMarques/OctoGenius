@@ -6,13 +6,13 @@ import { NextRequest, NextResponse } from "next/server";
 async function handleGet(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    const userEmail = searchParams.get("userEmail");
 
-    if (userId) {
+    if (userEmail) {
       const { data, error } = await supabaseAdmin
         .from("users")
         .select("*")
-        .eq("id", userId)
+        .eq("email", userEmail)
         .single();
 
       if (error) throw error;
