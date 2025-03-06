@@ -17,10 +17,10 @@ export function HeroSection() {
               Plano de estudos personalizado, questões adaptativas e estatísticas detalhadas para maximizar seu desempenho no ENEM e vestibulares.
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" asChild>
+              <Button size="lg" variant="outline" asChild>
                 <Link href="/cadastro">Comece Gratuitamente</Link>
               </Button>
-              <Button size="lg" variant="outline" asChild>
+              <Button size="lg" variant="default" asChild>
                 <Link href="/como-funciona">Saiba Mais</Link>
               </Button>
             </div>

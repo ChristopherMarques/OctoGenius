@@ -19,7 +19,7 @@ const PriceCard = ({
 }) => {
     return (
         <div
-            className={`relative max-w-full border rounded-lg p-8 flex flex-col min-h-full ${highlighted ? 'border-2 border-blue-500 shadow-2xl' : 'shadow-lg'
+            className={`relative max-w-full border rounded-lg py-8 px-4 flex flex-col min-h-full ${highlighted ? 'border-2 border-blue-500 shadow-2xl' : 'shadow-lg'
                 } transition-all transform hover:scale-105`}
         >
             {highlighted && (
@@ -33,8 +33,8 @@ const PriceCard = ({
 
             <ul className="text-left space-y-3 text-primary flex-grow">
                 {features?.map((feature: string, index: number) => (
-                    <li key={index} className="flex items-center">
-                        <CheckCircle className="mr-2 text-green-500" size={16} />
+                    <li key={index} className="flex items-center w-full">
+                        <CheckCircle className="mr-2 text-green-500 text-sm" size={16} />
                         <span className="text-sm">{feature}</span>
                     </li>
                 ))}
