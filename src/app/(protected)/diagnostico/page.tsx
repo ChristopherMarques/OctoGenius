@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardHeader } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
@@ -23,18 +23,18 @@ export default function DiagnosticoPage() {
   const { data: diagnosticGet, isLoading: isLoadingGet } = useGetDiagnostic(user?.id);
   const { mutate: patchDiagnostic, isPending: isLoadingPatch, error } = usePatchDiagnostic();
   const loading = isLoadingPost || isLoadingGet || isLoadingPatch;
-  const questions = diagnosticGet?.questions || diagnosticPost?.questions || [];
+  const questions = useMemo(() => diagnosticGet?.questions || diagnosticPost?.questions || [], [diagnosticGet, diagnosticPost]);
   const progress = ((currentQuestion + 1) / questions.length) * 100;
   const nextQuestion = () => (currentQuestion < questions.length - 1 ? setCurrentQuestion(currentQuestion + 1) : completeTest());
   const handleAnswer = (value: string) => setAnswers({ ...answers, [questions[currentQuestion].id]: value });
 
-  const calculateScore = () => {
+  const calculateScore = useCallback(() => {
     const score = questions.reduce((acc: number, question: DiagnosticQuestion) => {
       return acc + (answers[question.id] === question.resposta ? 1 : 0);
     }, 0);
 
     setScore(score);
-  };
+  }, [answers, questions]);
 
   const completeTest = () => {
     setTestCompleted(true);
@@ -62,7 +62,7 @@ export default function DiagnosticoPage() {
 
   useEffect(() => {
     calculateScore();
-  }, [answers]);
+  }, [calculateScore, currentQuestion]);
 
   return (
     <div className="flex min-h-screen flex-col">
