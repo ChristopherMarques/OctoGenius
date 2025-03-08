@@ -1,211 +1,95 @@
 "use client";
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
+import { useEffect, useState } from "react";
+import { Card, CardHeader } from "@/components/ui/card";
 import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { useToast } from "@/hooks/use-toast";
-
-// Dados simulados para o teste diagnóstico
-const questoesDiagnostico = [
-  {
-    id: 1,
-    disciplina: "Matemática",
-    enunciado: "Se f(x) = 2x² - 3x + 1, então f(2) é igual a:",
-    alternativas: [
-      { id: "a", texto: "3" },
-      { id: "b", texto: "5" },
-      { id: "c", texto: "7" },
-      { id: "d", texto: "9" },
-      { id: "e", texto: "11" }
-    ],
-    resposta: "b"
-  },
-  {
-    id: 2,
-    disciplina: "Português",
-    enunciado: "Assinale a alternativa em que todas as palavras estão grafadas corretamente:",
-    alternativas: [
-      { id: "a", texto: "exceção, excessão, excesso" },
-      { id: "b", texto: "exceção, excesso, excêntrico" },
-      { id: "c", texto: "excessão, escesso, excêntrico" },
-      { id: "d", texto: "exceção, escesso, exêntrico" },
-      { id: "e", texto: "excessão, excesso, excêntrico" }
-    ],
-    resposta: "b"
-  },
-  {
-    id: 3,
-    disciplina: "Física",
-    enunciado: "Um corpo de massa 2 kg está inicialmente em repouso. Uma força constante de 4 N é aplicada sobre ele durante 3 segundos. Considerando que não há atrito, a velocidade final do corpo, em m/s, será de:",
-    alternativas: [
-      { id: "a", texto: "2" },
-      { id: "b", texto: "4" },
-      { id: "c", texto: "6" },
-      { id: "d", texto: "8" },
-      { id: "e", texto: "10" }
-    ],
-    resposta: "c"
-  },
-  {
-    id: 4,
-    disciplina: "Química",
-    enunciado: "Qual das seguintes substâncias NÃO é um hidrocarboneto?",
-    alternativas: [
-      { id: "a", texto: "C₂H₆" },
-      { id: "b", texto: "C₃H₈" },
-      { id: "c", texto: "C₄H₁₀" },
-      { id: "d", texto: "C₂H₅OH" },
-      { id: "e", texto: "C₆H₆" }
-    ],
-    resposta: "d"
-  },
-  {
-    id: 5,
-    disciplina: "Biologia",
-    enunciado: "Qual das seguintes estruturas celulares é responsável pela produção de ATP?",
-    alternativas: [
-      { id: "a", texto: "Núcleo" },
-      { id: "b", texto: "Retículo endoplasmático" },
-      { id: "c", texto: "Mitocôndria" },
-      { id: "d", texto: "Complexo de Golgi" },
-      { id: "e", texto: "Lisossomo" }
-    ],
-    resposta: "c"
-  }
-];
+import { usePostDiagnostic, useGetDiagnostic, usePatchDiagnostic } from "@/lib/hooks/queries/useDiagnostic";
+import { useUser } from "@/contexts/user-context";
+import { TestProgress, QuestionCard, NavigationButtons, TestCompletion, IntentionOn } from "@/components/diagnostic";
+import { Spinner } from "@/components/ui/spinner";
+import { DiagnosticQuestion } from "@/types/diagnostic-tests.types";
 
 export default function DiagnosticoPage() {
   const { toast } = useToast();
-  const [questaoAtual, setQuestaoAtual] = useState(0);
-  const [respostas, setRespostas] = useState<Record<number, string>>({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [testeConcluido, setTesteConcluido] = useState(false);
+  const { user } = useUser();
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [testCompleted, setTestCompleted] = useState(false);
+  const [intentionIn, setIntentionIn] = useState("");
+  const [score, setScore] = useState(0);
+  const { data: diagnosticPost, isLoading: isLoadingPost } = usePostDiagnostic(intentionIn, user?.id);
+  const { data: diagnosticGet, isLoading: isLoadingGet } = useGetDiagnostic(user?.id);
+  const { mutate: patchDiagnostic, isPending: isLoadingPatch, error } = usePatchDiagnostic();
+  const loading = isLoadingPost || isLoadingGet || isLoadingPatch;
+  const questions = diagnosticGet?.questions || diagnosticPost?.questions || [];
+  const progress = ((currentQuestion + 1) / questions.length) * 100;
+  const nextQuestion = () => (currentQuestion < questions.length - 1 ? setCurrentQuestion(currentQuestion + 1) : completeTest());
+  const handleAnswer = (value: string) => setAnswers({ ...answers, [questions[currentQuestion].id]: value });
 
-  const progresso = ((questaoAtual + 1) / questoesDiagnostico.length) * 100;
+  const calculateScore = () => {
+    const score = questions.reduce((acc: number, question: DiagnosticQuestion) => {
+      return acc + (answers[question.id] === question.resposta ? 1 : 0);
+    }, 0);
 
-  const handleResposta = (valor: string) => {
-    setRespostas({
-      ...respostas,
-      [questoesDiagnostico[questaoAtual].id]: valor
-    });
+    setScore(score);
   };
 
-  const proximaQuestao = () => {
-    if (questaoAtual < questoesDiagnostico.length - 1) {
-      setQuestaoAtual(questaoAtual + 1);
+  const completeTest = () => {
+    setTestCompleted(true);
+    patchDiagnostic({ userId: user?.id, questions_answers: answers, score: score });
+    if (error) {
+      toast({ title: "Erro ao concluir o teste!", description: error.message });
     } else {
-      finalizarTeste();
+      toast({ title: "Teste concluído!", description: "Gerando plano de estudos." });
+      setTimeout(() => window.location.href = "/dashboard", 3000);
     }
   };
 
-  const questaoAnterior = () => {
-    if (questaoAtual > 0) {
-      setQuestaoAtual(questaoAtual - 1);
+  const handleIntentionChange = (value: string) => {
+    setIntentionIn(value);
+    setCurrentQuestion(0);
+    setAnswers({});
+    setTestCompleted(false);
+  };
+
+  const handlePrevious = () => {
+    if (currentQuestion > 0) {
+      setCurrentQuestion(currentQuestion - 1);
     }
   };
 
-  const finalizarTeste = () => {
-    setIsLoading(true);
-
-    // Simulando processamento do teste
-    setTimeout(() => {
-      setIsLoading(false);
-      setTesteConcluido(true);
-
-      toast({
-        title: "Teste diagnóstico concluído!",
-        description: "Seu plano de estudos personalizado está sendo gerado.",
-      });
-
-      // Redirecionamento após conclusão do teste
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 3000);
-    }, 2000);
-  };
-
-  const questaoAtualObj = questoesDiagnostico[questaoAtual];
+  useEffect(() => {
+    calculateScore();
+  }, [answers]);
 
   return (
     <div className="flex min-h-screen flex-col">
       <Header />
       <main className="flex-1 py-12">
-        <div className="container max-w-3xl mx-auto px-4">
-          {!testeConcluido ? (
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center mb-2">
-                  <div className="text-sm font-medium text-muted-foreground">
-                    Questão {questaoAtual + 1} de {questoesDiagnostico.length}
-                  </div>
-                  <div className="text-sm font-medium text-primary">
-                    {questaoAtualObj.disciplina}
-                  </div>
+        <div className="container max-w-3xl mx-auto">
+          {!testCompleted ? (
+            <Card className="flex flex-col gap-4 px-4">
+              {questions.length > 0 && (
+                <CardHeader>
+                  <TestProgress currentQuestion={currentQuestion} totalQuestions={questions.length} progress={progress} discipline={questions[currentQuestion]?.disciplina} />
+                </CardHeader>
+              )}
+              {loading ? (
+                <div className="flex justify-center items-center h-full">
+                  <Spinner />
                 </div>
-                <Progress value={progresso} className="h-2" />
-                <CardTitle className="mt-6 text-xl">
-                  {questaoAtualObj.enunciado}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <RadioGroup
-                  value={respostas[questaoAtualObj.id]}
-                  onValueChange={handleResposta}
-                  className="space-y-4"
-                >
-                  {questaoAtualObj.alternativas.map((alternativa) => (
-                    <div key={alternativa.id} className="flex items-start space-x-2 border p-4 rounded-md hover:bg-muted/50 transition-colors">
-                      <RadioGroupItem value={alternativa.id} id={`alternativa-${alternativa.id}`} />
-                      <Label htmlFor={`alternativa-${alternativa.id}`} className="flex-1 cursor-pointer">
-                        <span className="font-semibold">{alternativa.id.toUpperCase()})</span> {alternativa.texto}
-                      </Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-              </CardContent>
-              <CardFooter className="flex justify-between">
-                <Button
-                  variant="outline"
-                  onClick={questaoAnterior}
-                  disabled={questaoAtual === 0}
-                >
-                  Anterior
-                </Button>
-                <Button
-                  onClick={proximaQuestao}
-                  disabled={!respostas[questaoAtualObj.id] || isLoading}
-                >
-                  {questaoAtual === questoesDiagnostico.length - 1
-                    ? (isLoading ? "Finalizando..." : "Finalizar Teste")
-                    : "Próxima"}
-                </Button>
-              </CardFooter>
+              ) : (
+                <>
+                  {!diagnosticGet && !questions.length && <IntentionOn value={intentionIn} onChange={handleIntentionChange} />}
+                  <QuestionCard question={questions[currentQuestion]} answer={answers[questions[currentQuestion]?.id]} onAnswerChange={handleAnswer} />
+                  <NavigationButtons onPrevious={handlePrevious} onNext={nextQuestion} canBack={currentQuestion > 0} canAdvance={!!answers[questions[currentQuestion]?.id]} canFinish={questions.length === currentQuestion + 1} isFinishing={testCompleted} />
+                </>
+              )}
             </Card>
           ) : (
-            <Card className="text-center">
-              <CardHeader>
-                <CardTitle className="text-2xl">Teste Diagnóstico Concluído!</CardTitle>
-                <CardDescription>
-                  Obrigado por completar o teste diagnóstico. Estamos analisando suas respostas.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="my-6 flex justify-center">
-                  <div className="w-24 h-24 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                </div>
-                <p className="text-lg">
-                  Seu plano de estudos personalizado está sendo gerado com base no seu desempenho.
-                </p>
-                <p className="mt-4 text-muted-foreground">
-                  Você será redirecionado automaticamente para o seu dashboard em alguns instantes.
-                </p>
-              </CardContent>
-            </Card>
+            <TestCompletion />
           )}
         </div>
       </main>
@@ -213,3 +97,4 @@ export default function DiagnosticoPage() {
     </div>
   );
 }
+
