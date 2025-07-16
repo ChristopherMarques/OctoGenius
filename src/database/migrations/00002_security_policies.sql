@@ -15,7 +15,7 @@ DO $$
 BEGIN
   -- Users can view their own data
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Users can view their own data'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Users can view their own data'
   ) THEN
     CREATE POLICY "Users can view their own data"
       ON users FOR SELECT
@@ -27,7 +27,7 @@ BEGIN
 
   -- Users can view their own diagnostic tests
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Users can view their own diagnostic tests'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Users can view their own diagnostic tests'
   ) THEN
     CREATE POLICY "Users can view their own diagnostic tests"
       ON diagnostic_tests FOR SELECT
@@ -39,7 +39,7 @@ BEGIN
 
   -- Users can view their own study plans
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Users can view their own study plans'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Users can view their own study plans'
   ) THEN
     CREATE POLICY "Users can view their own study plans"
       ON study_plans FOR SELECT
@@ -51,7 +51,7 @@ BEGIN
 
   -- Users can view their own progress
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Users can view their own progress'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Users can view their own progress'
   ) THEN
     CREATE POLICY "Users can view their own progress"
       ON subject_progress FOR SELECT
@@ -63,7 +63,7 @@ BEGIN
 
   -- Public read access to questions
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Public read access to questions'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Public read access to questions'
   ) THEN
     CREATE POLICY "Public read access to questions"
       ON questions FOR SELECT
@@ -76,7 +76,7 @@ BEGIN
 
   -- Allow anonymous users to list plans
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Public read access to plans'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Public read access to plans'
   ) THEN
     CREATE POLICY "Public read access to plans"
       ON plans FOR SELECT
@@ -89,7 +89,7 @@ BEGIN
 
   -- Users can view their own subscriptions
   IF NOT EXISTS (
-    SELECT 1 FROM pg_policies WHERE polname = 'Users can view their own subscriptions'
+    SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Users can view their own subscriptions'
   ) THEN
     CREATE POLICY "Users can view their own subscriptions"
       ON subscriptions FOR SELECT
@@ -98,5 +98,17 @@ BEGIN
     ALTER POLICY "Users can view their own subscriptions"
       ON subscriptions USING (auth.uid() = user_id);
   END IF;
+
+  -- Users can insert their own user row
+IF NOT EXISTS (
+  SELECT 1 FROM pg_policies WHERE pg_policies.policyname = 'Users can insert their own user row'
+) THEN
+  CREATE POLICY "Users can insert their own user row"
+    ON users FOR INSERT
+     WITH CHECK (id = auth.uid());
+ELSE
+  ALTER POLICY "Users can insert their own user row"
+    ON users WITH CHECK (id = auth.uid());
+END IF;
 
 END $$;
