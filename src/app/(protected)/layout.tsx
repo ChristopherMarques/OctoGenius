@@ -7,7 +7,7 @@ export default function ProtectedLayout({
     children: React.ReactNode
 }) {
     return (
-        <ThemeProvider attribute="class" defaultTheme="light">
+        <ThemeProvider attribute="class" enableSystem>
             <ProtectedRoute>{children}</ProtectedRoute>
         </ThemeProvider>
     )

@@ -10,6 +10,7 @@ import Markdown from 'react-markdown';
 import { toast } from 'sonner';
 import Image from 'next/image';
 import ChatImage from "@/assets/logos/logo-chat.png";
+import { useToast } from '@/hooks/use-toast';
 
 function AiInput({
   value,
@@ -76,7 +77,7 @@ export default function WorkingChatbot() {
     {},
   );
   const startTimeRef = useRef<number>(0);
-  // Using theme for styling is handled by Tailwind's dark mode classes
+  const { toast } = useToast()
 
   const {
     messages,
@@ -134,7 +135,7 @@ export default function WorkingChatbot() {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative mb-4 flex rounded-xl px-2 py-6 text-neutral-50 bg-neutral-600 sm:px-4">
+                  <div className="relative mb-4 flex rounded-xl px-2 py-6 text-neutral-50 bg-neutral-300 dark:bg-neutral-700 sm:px-4">
                     <Image
                       src={ChatImage}
                       alt="AI Assistant"
@@ -143,11 +144,9 @@ export default function WorkingChatbot() {
                       className="mr-2 flex size-16 rounded-full p-1 text-primary sm:mr-4"
                     />
                     <div className="markdown-body w-full max-w-3xl overflow-x-auto rounded-xl">
-                      <div className='text-neutral-50 bg-neutral-600 w-full'>
-                        <Markdown>{m.content}</Markdown>
-                      </div>
+                      <Markdown>{m.content}</Markdown>
                       {responseTimes[m.id] && (
-                        <div className="mt-2 text-xs text-neutral-500">
+                        <div className="mt-2 text-xs text-neutral-400">
                           Tempo de resposta: {responseTimes[m.id].toFixed(3)}s
                         </div>
                       )}
@@ -155,10 +154,10 @@ export default function WorkingChatbot() {
                     <button
                       type="button"
                       title="copy"
-                      className="absolute right-2 top-2 rounded-full bg-rose-500 p-1 opacity-50 transition-all hover:opacity-75 active:scale-95 dark:bg-neutral-800"
+                      className="absolute right-2 top-2 rounded-md bg-neutral-500 p-1 opacity-50 transition-all hover:opacity-75 active:scale-95"
                       onClick={() => {
                         navigator.clipboard.writeText(m.content);
-                        toast.success('Copiado para área de transferência');
+                        toast({ title: "Sucesso", description: "Copiado para área de transferência!" });
                       }}
                     >
                       <Copy className="h-4 w-4 text-white" />
