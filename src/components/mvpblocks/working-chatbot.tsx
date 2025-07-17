@@ -134,16 +134,16 @@ export default function WorkingChatbot() {
                     </div>
                   </div>
                 ) : (
-                  <div className="relative mb-4 flex rounded-xl bg-neutral-25 px-2 py-6 dark:bg-neutral-800 opacity-85 sm:px-4">
+                  <div className="relative mb-4 flex rounded-xl px-2 py-6 text-neutral-50 bg-neutral-600 sm:px-4">
                     <Image
                       src={ChatImage}
                       alt="AI Assistant"
                       width={64}
                       height={64}
-                      className="mr-2 flex size-16 rounded-full bg-secondary p-1 text-primary sm:mr-4"
+                      className="mr-2 flex size-16 rounded-full p-1 text-primary sm:mr-4"
                     />
                     <div className="markdown-body w-full max-w-3xl overflow-x-auto rounded-xl">
-                      <div className='text-neutral-50'>
+                      <div className='text-neutral-50 bg-neutral-600 w-full'>
                         <Markdown>{m.content}</Markdown>
                       </div>
                       {responseTimes[m.id] && (

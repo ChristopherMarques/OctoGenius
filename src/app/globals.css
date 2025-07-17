@@ -114,7 +114,7 @@ html {
 .markdown-body h6 {
   font-weight: 600;
   line-height: 1.15;
-  color: hsl(var(--foreground));
+  color: hsl(var(--color-neutral-50));
   margin-top: 15px;
   margin-bottom: 10px;
 }
@@ -122,12 +122,12 @@ html {
 /* Paragraphs */
 .markdown-body p {
   margin-bottom: 10px;
-  color: hsl(var(--color-neutral-500));
+  color: hsl(var(--color-neutral-50));
 }
 
 /* Links */
 .markdown-body a {
-  @apply text-rose-500;
+  color: #271949;
   text-decoration: none;
 }
 
@@ -138,23 +138,24 @@ html {
 .markdown-body ul,
 .markdown-body ol {
   padding-left: 20px;
+  color: hsl(var(--color-neutral-50));
 }
 .markdown-body ul li {
   list-style-type: disc;
+  color: hsl(var(--color-neutral-50));
 }
 
 .markdown-body blockquote {
-  border-left: 4px solid #955d73;
+  border-left: 4px solid #271949;
   margin-left: 0;
   margin-right: 0;
   padding-left: 15px;
-  color: #a33d73;
+  color: #b68ae6;
 }
 
 .markdown-body pre {
-  background-color: #464646dc;
-  border-left: 3px solid #e60a64;
-  color: white;
+  border-left: 3px solid #271949;
+  color: hsl(var(--color-neutral-50));
   padding: 10px;
   overflow-x: auto;
 }
