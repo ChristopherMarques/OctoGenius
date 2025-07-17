@@ -127,30 +127,25 @@ export default function WorkingChatbot() {
             return (
               <div key={m.id} className="mb-4 whitespace-pre-wrap">
                 {m.role === 'user' ? (
-                  <div className="flex flex-row px-2 py-4 sm:px-4">
-                    {/* <Image
-                      alt="user"
-                      className="mr-2 flex size-6 rounded-full sm:mr-4 md:size-8"
-                      src="/logo.webp"
-                      width={32}
-                      height={32}
-                    /> */}
+                  <div className="flex flex-row px-2 py-4 sm:px-4 gap-2">
                     <User />
                     <div className="flex max-w-3xl items-center">
                       <p>{m.content}</p>
                     </div>
                   </div>
                 ) : (
-                  <div className="relative mb-4 flex rounded-xl bg-neutral-50 px-2 py-6 dark:bg-neutral-900 sm:px-4">
+                  <div className="relative mb-4 flex rounded-xl bg-neutral-25 px-2 py-6 dark:bg-neutral-800 opacity-85 sm:px-4">
                     <Image
                       src={ChatImage}
                       alt="AI Assistant"
-                      width={32}
-                      height={32}
-                      className="mr-2 flex size-8 rounded-full bg-secondary p-1 text-primary sm:mr-4"
+                      width={64}
+                      height={64}
+                      className="mr-2 flex size-16 rounded-full bg-secondary p-1 text-primary sm:mr-4"
                     />
                     <div className="markdown-body w-full max-w-3xl overflow-x-auto rounded-xl">
-                      <Markdown>{m.content}</Markdown>
+                      <div className='text-neutral-50'>
+                        <Markdown>{m.content}</Markdown>
+                      </div>
                       {responseTimes[m.id] && (
                         <div className="mt-2 text-xs text-neutral-500">
                           Tempo de resposta: {responseTimes[m.id].toFixed(3)}s
@@ -220,6 +215,6 @@ export default function WorkingChatbot() {
           />
         </div>
       </form>
-    </div>
+    </div >
   );
 }

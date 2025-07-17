@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
-import { streamText, CoreMessage } from "ai";
+import { streamText, CoreMessage, smoothStream } from "ai";
 import { withRateLimit } from "@/lib/utils/with-rate-limit";
 import { AIEngineAgent, defaultAgent } from "@/lib/agents";
 
@@ -24,6 +24,7 @@ async function handlePost(req: NextRequest): Promise<NextResponse> {
 
     const result = await streamText({
       model: model,
+      experimental_transform: smoothStream({ chunking: "word" }),
       system: `
         ${engineAgent.personality}
         ${engineAgent.instructions}
