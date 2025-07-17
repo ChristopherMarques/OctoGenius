@@ -37,8 +37,8 @@ function AiInput({
             id="ai-input-06"
             placeholder="Me pergunte qualquer coisa sobre vestibulares e Enem"
             className={cn(
-              'w-full max-w-4xl resize-none text-wrap rounded-xl  bg-muted/50 py-4 pl-6 pr-12 leading-[1.2] text-foreground ring-primary/20 placeholder:text-muted-foreground/70',
-              'min-h-[56px] transition-all duration-200 focus:ring-2 focus:ring-primary/30',
+              'w-full max-w-4xl resize-none text-wrap rounded-mx  bg-muted/50 py-4 pl-6 pr-12 leading-[1.2] text-foreground ring-primary/20 placeholder:text-muted-foreground/70',
+              'min-h-[72px] transition-all duration-200 focus:ring-2 focus:ring-primary/30',
             )}
             value={value}
             onKeyDown={onKeyDown}
@@ -121,8 +121,8 @@ export default function WorkingChatbot() {
   );
 
   return (
-    <div className="mx-auto flex h-svh w-full max-w-4xl flex-col pb-0.5">
-      <div className="h-full flex-1 overflow-y-auto rounded-xl border border-primary/20 bg-card/40 p-4 text-sm leading-6 text-card-foreground shadow-md sm:text-base sm:leading-7">
+    <div className="mx-auto flex h-full w-full max-w-4xl flex-col pb-0.5">
+      <div className="h-full flex-1 overflow-y-auto rounded-b-md rounded-t-xl border border-primary/20 bg-card/40 p-4 text-sm leading-6 text-card-foreground shadow-md sm:text-base sm:leading-7">
         {messages.length > 0 ? (
           messages.map((m) => {
             return (

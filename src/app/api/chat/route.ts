@@ -14,7 +14,6 @@ async function handlePost(req: NextRequest): Promise<NextResponse> {
     }: { messages: CoreMessage[]; body: { agent?: Partial<AIEngineAgent> } } =
       await req.json();
 
-    // Combina o agente padrão com customizações enviadas pelo cliente (se houver)
     const engineAgent = { ...defaultAgent, ...body?.agent };
 
     const google = createGoogleGenerativeAI({
