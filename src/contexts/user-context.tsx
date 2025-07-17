@@ -12,7 +12,7 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const { data: session } = useSession();
   const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true); // Inicialmente carregando
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {

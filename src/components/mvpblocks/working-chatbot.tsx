@@ -7,7 +7,6 @@ import { cn } from '@/lib/design-utils';
 import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea';
 import { useChat } from '@ai-sdk/react';
 import Markdown from 'react-markdown';
-import { toast } from 'sonner';
 import Image from 'next/image';
 import ChatImage from "@/assets/logos/logo-chat.png";
 import { useToast } from '@/hooks/use-toast';
