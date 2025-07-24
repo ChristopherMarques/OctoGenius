@@ -51,7 +51,7 @@ export function Header() {
                   <span className="sr-only">Menu</span>
                 </Button>
               </SheetTrigger>
-              <SheetContent side="right">
+              <SheetContent side="right" className="bg-black p-4 opacity-100">
                 <div className="flex flex-col gap-4 mt-8">
                   <Link href="/plano-estudos" className="text-sm font-medium hover:text-primary transition-colors" onClick={() => setIsOpen(false)}>
                     Plano de Estudos
