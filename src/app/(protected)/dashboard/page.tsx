@@ -11,6 +11,8 @@ import { Header } from "@/components/header";
 import { Footer } from "@/components/footer";
 import { BookOpen, CheckCircle, Clock, Trophy, BarChart3, Calendar, ArrowRight, Brain } from "lucide-react";
 import { useUser } from "@/contexts/user-context";
+import { useGetDiagnostic } from "@/lib/hooks/queries/useDiagnostic";
+import { useRouter } from "next/navigation";
 
 // Dados simulados para o dashboard
 const disciplinas = [
@@ -50,7 +52,13 @@ const CORES = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3)
 export default function DashboardPage() {
   const [atividadesConcluidas, setAtividadesConcluidas] = useState<number[]>([1]);
   const { user } = useUser();
+  const { data: diagnosticData } = useGetDiagnostic(user?.id);
+  const router = useRouter()
   const name = user?.full_name?.split(" ")[0];
+
+  if (!diagnosticData) {
+    router.replace('/welcome');
+  }
 
   const marcarConcluida = (id: number) => {
     if (atividadesConcluidas.includes(id)) {

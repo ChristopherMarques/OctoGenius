@@ -17,7 +17,6 @@ const RedirectPlan = () => {
             return;
         }
 
-
         const createCheckoutSession = async () => {
             const { alreadyHasPlan } = await checkPlan(user?.id, priceId);
 
