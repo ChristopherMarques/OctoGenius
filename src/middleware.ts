@@ -20,6 +20,22 @@ export const middleware = async (req: NextRequest) => {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
+  if (isAuthenticated && req.nextUrl.pathname.startsWith("/auth")) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // Lógica de redirecionamento pós-login
+  if (isAuthenticated && !isPublicRoute) {
+    // Aqui você deve verificar se o usuário já tem um plano de estudos ativo.
+    // Esta é uma lógica ilustrativa. A verificação real deve ser feita
+    // consultando o seu banco de dados.
+    const hasStudyPlan = token.hasStudyPlan; // Você precisará adicionar essa informação ao token
+
+    if (!hasStudyPlan && req.nextUrl.pathname !== "/diagnostico") {
+      return NextResponse.redirect(new URL("/diagnostico", req.url));
+    }
+  }
+
   return NextResponse.next();
 };
 

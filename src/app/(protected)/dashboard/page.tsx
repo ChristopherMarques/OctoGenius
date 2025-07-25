@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import Link from "next/link";
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
-import { BookOpen, CheckCircle, Clock, Trophy, BarChart3, Calendar, ArrowRight, Brain } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/contexts/user-context";
-import { useGetDiagnostic } from "@/lib/hooks/queries/useDiagnostic";
-import { useRouter } from "next/navigation";
+import { ArrowRight, BarChart3, BookOpen, Brain, Calendar, CheckCircle, Clock, Trophy } from "lucide-react";
+import Link from "next/link";
+import { useState } from "react";
+import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 // Dados simulados para o dashboard
 const disciplinas = [
@@ -52,13 +50,7 @@ const CORES = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3)
 export default function DashboardPage() {
   const [atividadesConcluidas, setAtividadesConcluidas] = useState<number[]>([1]);
   const { user } = useUser();
-  const { data: diagnosticData } = useGetDiagnostic(user?.id);
-  const router = useRouter()
   const name = user?.full_name?.split(" ")[0];
-
-  if (!diagnosticData) {
-    router.replace('/welcome');
-  }
 
   const marcarConcluida = (id: number) => {
     if (atividadesConcluidas.includes(id)) {
