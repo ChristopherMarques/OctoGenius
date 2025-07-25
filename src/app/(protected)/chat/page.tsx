@@ -5,7 +5,6 @@ export default function ChatPage() {
     return (
         <div className="flex h-svh py-2 flex-col">
             <WorkingChatbot />
-            <ChatWidget />
         </div>
     )
 }
