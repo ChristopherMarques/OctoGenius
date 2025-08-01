@@ -59,6 +59,7 @@ export default function DiagnosticPage() {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [isLoading, setIsLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     const handleSubjectChange = (subjectValue: string) => {
@@ -161,6 +162,49 @@ export default function DiagnosticPage() {
             toast({ title: "Erro ao Finalizar", description: err.message, variant: "destructive" });
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const handleDownload = async () => {
+        const studyPlanId = localStorage.getItem('lastStudyPlanId');
+        if (!studyPlanId) {
+            toast({ title: "Erro", description: "ID do plano de estudos não encontrado no localStorage.", variant: "destructive" });
+            return;
+        }
+
+        console.log(`Iniciando download para o studyPlanId: ${studyPlanId}`);
+        setIsDownloading(true);
+        try {
+            const response = await fetch('/api/download-study-plan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ studyPlanId }),
+            });
+
+            // Se a resposta não for 'ok', vamos investigar o que o servidor retornou
+            if (!response.ok) {
+                const errorText = await response.text(); // Lê a resposta como texto para ver o que é
+                console.error("A API retornou um erro:", {
+                    status: response.status,
+                    statusText: response.statusText,
+                    body: errorText, // Isto vai mostrar o HTML da página de erro 404 do Next.js
+                });
+                throw new Error(`Falha ao contactar a API. O servidor respondeu com o status ${response.status}.`);
+            }
+
+            const data = await response.json();
+            
+            const link = document.createElement('a');
+            link.href = data.pdfBase64;
+            link.download = data.fileName || `plano-de-estudos.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+        } catch (err: any) {
+            toast({ title: "Erro no Download", description: err.message, variant: "destructive" });
+        } finally {
+            setIsDownloading(false);
         }
     };
 
@@ -300,21 +344,31 @@ export default function DiagnosticPage() {
                             <p className="font-semibold text-xl">Badge Conquistada!</p>
                         </div>
                     </div>
-                    <Button 
-                        onClick={() => {
-                            const studyPlanId = localStorage.getItem('lastStudyPlanId');
-                            if (studyPlanId) {
-                                router.push(`/plano-estudos/${studyPlanId}`);
-                            } else {
-                                router.push('/dashboard');
-                            }
-                        }} 
-                        size="lg" 
-                        className="w-[90%]" 
-                        variant="outline"
-                    >
-                        Ver meu novo Plano de Estudos
-                    </Button>
+                    <div className="flex flex-col items-center justify-center space-y-4 w-full">
+                        <Button 
+                            onClick={() => {
+                                const studyPlanId = localStorage.getItem('lastStudyPlanId');
+                                if (studyPlanId) {
+                                    router.push(`/plano-estudos/${studyPlanId}`);
+                                } else {
+                                    router.push('/dashboard');
+                                }
+                            }} 
+                            size="lg" 
+                            className="w-[90%]" 
+                        >
+                            Ver meu novo Plano de Estudos
+                        </Button>
+                        <Button 
+                            onClick={handleDownload}
+                            size="lg" 
+                            className="w-[90%]" 
+                            variant="outline"
+                            disabled={isDownloading}
+                        >
+                            {isDownloading ? <Spinner /> : "Baixar PDF do Plano"}
+                        </Button>
+                    </div>
                 </CardContent>
             </Card>
         </motion.div>

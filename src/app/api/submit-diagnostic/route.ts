@@ -1,261 +1,155 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-// Interfaces para tipagem
-interface StudySession {
-  subjectName: string;
-  scheduled_date: string;
-  status: string;
-}
+const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY!);
 
-interface StudySessionToInsert {
-  study_plan_id: string;
-  subject_id: string | undefined;
-  scheduled_date: string;
-  status: string;
-}
-
-interface Subject {
-  id: string;
-  name: string;
-}
-
-// Inicializa o Google AI Client
-const genAI = new GoogleGenerativeAI(
-  process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY || ""
-);
-
-// Zod Schemas para validação
 const userAnswerSchema = z.object({
-  questionId: z.string().uuid(),
-  selectedAnswerId: z.string().uuid(),
+  questionId: z.string(),
+  selectedAnswerId: z.string(),
+});
+
+const questionSchema = z.object({
+  id: z.string(),
+  statement: z.string(),
+  correctAnswerId: z.string(),
+  subject: z.object({ id: z.string(), name: z.string() }).optional(),
 });
 
 const submitDiagnosticSchema = z.object({
+  questions: z.array(questionSchema),
   userAnswers: z.array(userAnswerSchema),
 });
 
 export async function POST(req: NextRequest) {
   try {
-    // 1. Autenticação e Validação
     const session = await getServerSession();
-    const email = session?.user?.email;
-
-    const { data } = await supabaseAdmin
-      .from("users")
-      .select("*")
-      .eq("email", email)
-      .single();
-
-    console.log("usuario", data);
-    if (!data) {
+    if (!session?.user?.email) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
-    const userId = data.id;
 
-    const body = await req.json();
-    const validation = submitDiagnosticSchema.safeParse(body);
-
-    if (!validation.success) {
-      return NextResponse.json(
-        { error: "Dados inválidos", details: validation.error.errors },
-        { status: 400 }
-      );
-    }
-    const { userAnswers } = validation.data;
-
-    // 2. Buscar alternativas corretas e calcular o score
-    const questionIds = userAnswers.map((a) => a.questionId);
-    const { data: correctAlternatives, error: altError } = await supabaseAdmin
-      .from("question_alternatives")
-      .select("id, question_id")
-      .in("question_id", questionIds)
-      .eq("is_correct", true);
-
-    if (altError)
-      throw new Error(`Erro ao buscar respostas corretas: ${altError.message}`);
-
-    let correctCount = 0;
-    const answersToInsert = userAnswers.map((answer) => {
-      const correctAlternative = correctAlternatives.find(
-        (alt) => alt.question_id === answer.questionId
-      );
-      const isCorrect = answer.selectedAnswerId === correctAlternative?.id;
-      if (isCorrect) correctCount++;
-      return {
-        user_id: userId,
-        question_id: answer.questionId,
-        selected_alternative_id: answer.selectedAnswerId,
-        is_correct: isCorrect,
-        answered_at: new Date().toISOString(),
-      };
-    });
-    const score = (correctCount / userAnswers.length) * 100;
-
-    // 3. Salvar as respostas do usuário
-    const { error: userAnswerError } = await supabaseAdmin
-      .from("user_answers")
-      .insert(answersToInsert);
-    if (userAnswerError)
-      throw new Error(`Erro ao salvar respostas: ${userAnswerError.message}`);
-
-    // 4. Salvar o resultado do teste diagnóstico
-    // Nota: O schema pede 'knowledge_area_id'. Como o teste pode ter várias,
-    // esta lógica pode ser refinada. Por agora, deixaremos nulo ou pegaremos a primeira.
-    const { data: diagnosticTest, error: diagnosticError } = await supabaseAdmin
-      .from("diagnostic_tests")
-      .insert({
-        user_id: userId,
-        score: score,
-        completed_at: new Date().toISOString(),
-      })
-      .select()
+    const { data: userData } = await supabaseAdmin
+      .from("users")
+      .select("id")
+      .eq("email", session.user.email)
       .single();
 
-    if (diagnosticError)
-      throw new Error(`Erro ao salvar diagnóstico: ${diagnosticError.message}`);
+    if (!userData) {
+      return NextResponse.json({ error: "Usuário não encontrado" }, { status: 404 });
+    }
+    const userId = userData.id;
 
-    // 5. Gerar Plano de Estudos com IA
-    const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash-latest",
-      generationConfig: { responseMimeType: "application/json" },
+    const body = await req.json();
+    const { questions, userAnswers } = submitDiagnosticSchema.parse(body);
+
+    const performance: { [subjectName: string]: { correct: number; total: number } } = {};
+    questions.forEach((q) => {
+      const subjectName = q.subject?.name || "Conhecimentos Gerais";
+      if (!performance[subjectName]) {
+        performance[subjectName] = { correct: 0, total: 0 };
+      }
+      performance[subjectName].total++;
+      const userAnswer = userAnswers.find((a) => a.questionId === q.id);
+      if (userAnswer && userAnswer.selectedAnswerId === q.correctAnswerId) {
+        performance[subjectName].correct++;
+      }
     });
 
-    // Lógica para obter os tópicos para o plano de estudos (pode ser aprimorada)
-    const { data: answeredQuestions, error: qError } = await supabaseAdmin
-      .from("questions")
-      .select("content, subject_id, subjects(name)")
-      .in("id", questionIds);
+    const subjectsToImprove = Object.entries(performance)
+      .sort(([, a], [, b]) => a.correct / a.total - b.correct / b.total)
+      .map(([subject]) => subject)
+      .slice(0, 3);
 
-    if (qError)
-      throw new Error(`Erro ao buscar questões respondidas: ${qError.message}`);
-
-    const topicsForPlan = answeredQuestions?.map((q) => ({
-      topic: q.content, // Usando o enunciado como "tópico"
-      subject: q.subjects?.name || "Geral",
-    }));
-
+    // --- MUDANÇA 1: Buscar matérias ANTES para informar a IA ---
+    const { data: subjectsList } = await supabaseAdmin.from("subjects").select("id, name");
+    if (!subjectsList) {
+      throw new Error("Não foi possível buscar a lista de matérias do banco de dados.");
+    }
+    const availableSubjectNames = subjectsList.map(s => s.name);
+    
+    // --- MUDANÇA 2: Prompt Aprimorado ---
     const prompt = `
-        Baseado nos tópicos que o usuário acabou de responder em um teste: ${JSON.stringify(
-          topicsForPlan
-        )}, 
-        crie um plano de estudos de 4 semanas.
-        Retorne um JSON com uma lista de sessões de estudo no seguinte formato:
-        [
-            {
-                "subjectName": "O nome da matéria (ex: 'Matemática')",
-                "scheduled_date": "A data para a sessão no formato AAAA-MM-DD",
-                "status": "pending"
-            },
-            {
-                "subjectName": "Outra matéria",
-                "scheduled_date": "AAAA-MM-DD",
-                "status": "pending"
-            }
-        ]
-        É MUITO IMPORTANTE que você retorne APENAS um array JSON, sem nenhum texto adicional.
-        Distribua as sessões ao longo de 28 dias a partir de amanhã.
+      Você é um coach de estudos especialista. Crie um plano de 4 semanas para um aluno focado em melhorar seu desempenho.
+      Foco Principal: As maiores dificuldades do aluno foram em: **${subjectsToImprove.join(", ")}**.
+      
+      **Regra Importante:** Para o campo "subject", você DEVE usar um dos seguintes nomes EXATAMENTE como estão escritos: **${availableSubjectNames.join(", ")}**.
+
+      Tarefa: Gere um plano de estudos completo em um único objeto JSON. Não inclua "'''json" ou "'''". O objeto deve conter:
+      1.  "welcomeMessage": Uma mensagem de boas-vindas curta e motivacional.
+      2.  "studyTips": Uma lista de 3 dicas de estudo acionáveis (objeto com "tip" e "description").
+      3.  "schedule": Uma lista de sessões de estudo. Cada sessão deve ser um objeto com:
+          - "week": (Número) 1 a 4.
+          - "day": (String) Dia da semana.
+          - "subject": (String) Matéria da lista fornecida.
+          - "duration": (Número) Duração em minutos (60 a 120).
+          - "topic": (String) Tópico específico.
+          - "activity": (String) Atividade prática.
+          - "resources": (String) Fonte de estudo sugerida.
     `;
 
-    const aiResult = await model.generateContent(prompt);
-    const aiResponseText = aiResult.response
-      .text()
-      .replace(/^```json\s*|```$/g, "");
-    let studySessionsData = JSON.parse(aiResponseText);
-    
-    // Garantir que studySessionsData seja um array
-    if (!Array.isArray(studySessionsData)) {
-      // Se for um objeto com uma propriedade que contém o array
-      if (studySessionsData && typeof studySessionsData === 'object') {
-        // Tentar encontrar uma propriedade que seja um array
-        const arrayProp = Object.keys(studySessionsData).find(key => 
-          Array.isArray(studySessionsData[key]));
-        
-        if (arrayProp) {
-          studySessionsData = studySessionsData[arrayProp];
-        } else {
-          // Se não encontrar um array, criar um array vazio
-          console.error('Resposta da IA não contém um array:', studySessionsData);
-          studySessionsData = [];
-        }
-      } else {
-        // Se não for um objeto ou array, criar um array vazio
-        console.error('Resposta da IA não é um array ou objeto:', studySessionsData);
-        studySessionsData = [];
-      }
-    }
-    
-    // Garantir que cada item do array tenha a estrutura esperada
-    const validStudySessions: StudySession[] = studySessionsData.filter((session: any) => {
-      return session && 
-             typeof session === 'object' && 
-             typeof session.subjectName === 'string' && 
-             typeof session.scheduled_date === 'string';
-    });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const result = await model.generateContent(prompt);
+    const responseText = result.response.text();
+    const generatedPlan = JSON.parse(responseText);
 
-    // 6. Salvar Plano de Estudos no Banco de Dados
-    const { data: studyPlan, error: planError } = await supabaseAdmin
+    const { data: newStudyPlan, error: planError } = await supabaseAdmin
       .from("study_plans")
       .insert({
         user_id: userId,
-        name: `Plano de Estudos Pós-Diagnóstico - ${new Date().toLocaleDateString()}`,
+        name: `Plano Focado em ${subjectsToImprove[0] || 'Geral'}`,
         start_date: new Date().toISOString(),
-        status: "active",
+        welcome_message: generatedPlan.welcomeMessage,
+        study_tips: generatedPlan.studyTips,
+        status: 'active',
       })
-      .select()
+      .select("id")
       .single();
 
-    if (planError)
-      throw new Error(`Erro ao criar plano de estudos: ${planError.message}`);
+    if (planError) {
+      throw new Error(`Erro ao criar o plano de estudos: ${planError.message}`);
+    }
+    const studyPlanId = newStudyPlan.id;
 
-    const { data: allSubjects, error: allSubjectsError } = await supabaseAdmin
-      .from("subjects")
-      .select("id, name");
-    if (allSubjectsError)
-      throw new Error(
-        `Erro ao buscar todas as matérias: ${allSubjectsError.message}`
-      );
-      
-    // Garantir que allSubjects não seja nulo
-    const subjects: Subject[] = allSubjects || [];
+    // --- MUDANÇA 3: Lógica de mapeamento com Fallback ---
+    const subjectMap = new Map(subjectsList.map((s) => [s.name.toLowerCase(), s.id]));
+    const fallbackSubjectId = '00000000-0000-0000-0000-000000000000'; // ID da matéria "Revisão Geral"
 
-    const sessionsToInsert: StudySessionToInsert[] = validStudySessions
-      .map((session: StudySession) => {
-        const subject = subjects.find((s) => s.name === session.subjectName);
-        return {
-          study_plan_id: studyPlan.id,
-          subject_id: subject?.id, // Pode ser nulo se a IA inventar uma matéria
-          scheduled_date: session.scheduled_date,
-          status: "pending",
-        };
-      })
-      .filter((s: StudySessionToInsert) => s.subject_id !== undefined); // Filtra sessões sem matéria correspondente
+    const sessionsToInsert = generatedPlan.schedule.map((session) => {
+      const sessionDate = new Date();
+      sessionDate.setDate(sessionDate.getDate() + (session.week - 1) * 7);
 
-    if (sessionsToInsert.length > 0) {
-      const { error: sessionsError } = await supabaseAdmin
-        .from("study_sessions")
-        .insert(sessionsToInsert);
-      if (sessionsError)
-        throw new Error(
-          `Erro ao salvar sessões de estudo: ${sessionsError.message}`
-        );
+      // Tenta encontrar a matéria. Se falhar, usa o ID de fallback.
+      const subjectId = subjectMap.get(session.subject.toLowerCase()) || fallbackSubjectId;
+
+      return {
+        study_plan_id: studyPlanId,
+        subject_id: subjectId,
+        scheduled_date: sessionDate.toISOString(),
+        duration_minutes: session.duration,
+        status: "pending",
+        topic: session.topic,
+        activity: session.activity,
+        resources: session.resources,
+        day_of_week: session.day,
+        week: session.week,
+      };
+    });
+
+    const { error: sessionsError } = await supabaseAdmin
+      .from("study_sessions")
+      .insert(sessionsToInsert);
+
+    if (sessionsError) {
+      throw new Error(`Erro ao salvar as sessões de estudo: ${sessionsError.message}`);
     }
 
-    return NextResponse.json(
-      { 
-        message: "Plano de estudos criado com sucesso!",
-        studyPlanId: studyPlan.id,
-        diagnosticId: diagnosticTest.id
-      },
-      { status: 200 }
-    );
+    return NextResponse.json({ studyPlanId });
   } catch (error: any) {
     console.error("Erro na API submit-diagnostic:", error);
     return NextResponse.json(
-      { error: error.message || "Ocorreu um erro interno no servidor." },
+      { error: "Ocorreu um erro interno no servidor ao gerar seu plano.", details: error.message },
       { status: 500 }
     );
   }
