@@ -4,6 +4,25 @@ import { z } from "zod";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
+// Interfaces para tipagem
+interface StudySession {
+  subjectName: string;
+  scheduled_date: string;
+  status: string;
+}
+
+interface StudySessionToInsert {
+  study_plan_id: string;
+  subject_id: string | undefined;
+  scheduled_date: string;
+  status: string;
+}
+
+interface Subject {
+  id: string;
+  name: string;
+}
+
 // Inicializa o Google AI Client
 const genAI = new GoogleGenerativeAI(
   process.env.NEXT_PUBLIC_GOOGLE_GEMINI_API_KEY || ""
@@ -124,12 +143,20 @@ export async function POST(req: NextRequest) {
           topicsForPlan
         )}, 
         crie um plano de estudos de 4 semanas.
-        Retorne um JSON com uma lista de sessões de estudo. Cada sessão deve ter:
-        {
-            "subjectName": "O nome da matéria (ex: 'Matemática')",
-            "scheduled_date": "A data para a sessão no formato AAAA-MM-DD",
-            "status": "pending"
-        }
+        Retorne um JSON com uma lista de sessões de estudo no seguinte formato:
+        [
+            {
+                "subjectName": "O nome da matéria (ex: 'Matemática')",
+                "scheduled_date": "A data para a sessão no formato AAAA-MM-DD",
+                "status": "pending"
+            },
+            {
+                "subjectName": "Outra matéria",
+                "scheduled_date": "AAAA-MM-DD",
+                "status": "pending"
+            }
+        ]
+        É MUITO IMPORTANTE que você retorne APENAS um array JSON, sem nenhum texto adicional.
         Distribua as sessões ao longo de 28 dias a partir de amanhã.
     `;
 
@@ -137,7 +164,37 @@ export async function POST(req: NextRequest) {
     const aiResponseText = aiResult.response
       .text()
       .replace(/^```json\s*|```$/g, "");
-    const studySessionsData = JSON.parse(aiResponseText);
+    let studySessionsData = JSON.parse(aiResponseText);
+    
+    // Garantir que studySessionsData seja um array
+    if (!Array.isArray(studySessionsData)) {
+      // Se for um objeto com uma propriedade que contém o array
+      if (studySessionsData && typeof studySessionsData === 'object') {
+        // Tentar encontrar uma propriedade que seja um array
+        const arrayProp = Object.keys(studySessionsData).find(key => 
+          Array.isArray(studySessionsData[key]));
+        
+        if (arrayProp) {
+          studySessionsData = studySessionsData[arrayProp];
+        } else {
+          // Se não encontrar um array, criar um array vazio
+          console.error('Resposta da IA não contém um array:', studySessionsData);
+          studySessionsData = [];
+        }
+      } else {
+        // Se não for um objeto ou array, criar um array vazio
+        console.error('Resposta da IA não é um array ou objeto:', studySessionsData);
+        studySessionsData = [];
+      }
+    }
+    
+    // Garantir que cada item do array tenha a estrutura esperada
+    const validStudySessions: StudySession[] = studySessionsData.filter((session: any) => {
+      return session && 
+             typeof session === 'object' && 
+             typeof session.subjectName === 'string' && 
+             typeof session.scheduled_date === 'string';
+    });
 
     // 6. Salvar Plano de Estudos no Banco de Dados
     const { data: studyPlan, error: planError } = await supabaseAdmin
@@ -161,10 +218,13 @@ export async function POST(req: NextRequest) {
       throw new Error(
         `Erro ao buscar todas as matérias: ${allSubjectsError.message}`
       );
+      
+    // Garantir que allSubjects não seja nulo
+    const subjects: Subject[] = allSubjects || [];
 
-    const sessionsToInsert = studySessionsData
-      .map((session: any) => {
-        const subject = allSubjects.find((s) => s.name === session.subjectName);
+    const sessionsToInsert: StudySessionToInsert[] = validStudySessions
+      .map((session: StudySession) => {
+        const subject = subjects.find((s) => s.name === session.subjectName);
         return {
           study_plan_id: studyPlan.id,
           subject_id: subject?.id, // Pode ser nulo se a IA inventar uma matéria
@@ -172,7 +232,7 @@ export async function POST(req: NextRequest) {
           status: "pending",
         };
       })
-      .filter((s: any) => s.subject_id); // Filtra sessões sem matéria correspondente
+      .filter((s: StudySessionToInsert) => s.subject_id !== undefined); // Filtra sessões sem matéria correspondente
 
     if (sessionsToInsert.length > 0) {
       const { error: sessionsError } = await supabaseAdmin
@@ -185,7 +245,11 @@ export async function POST(req: NextRequest) {
     }
 
     return NextResponse.json(
-      { message: "Plano de estudos criado com sucesso!" },
+      { 
+        message: "Plano de estudos criado com sucesso!",
+        studyPlanId: studyPlan.id,
+        diagnosticId: diagnosticTest.id
+      },
       { status: 200 }
     );
   } catch (error: any) {

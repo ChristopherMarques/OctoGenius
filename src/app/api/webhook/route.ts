@@ -84,6 +84,7 @@ export async function POST(req: NextRequest) {
                 stripe_subscription_id: stripeSubscriptionId,
                 status: "active",
                 payment_status: "paid",
+                updated_at: new Date().toISOString(),
               },
             ]);
 
@@ -128,7 +129,10 @@ export async function POST(req: NextRequest) {
         // Atualiza status da assinatura
         const { error: updateError } = await supabaseAdmin
           .from("subscriptions")
-          .update({ status: "canceled" })
+          .update({ 
+            status: "canceled",
+            updated_at: new Date().toISOString()
+          })
           .eq("user_id", userId);
 
         if (updateError) {

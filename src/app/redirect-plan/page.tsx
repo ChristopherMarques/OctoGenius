@@ -7,11 +7,14 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const RedirectPlan = () => {
-    const searchParams = useSearchParams();
+    const searchParamsObj = useSearchParams();
     const { user } = useUser();
+    
+    // Acessar os valores de searchParams no Next.js 15 diretamente
+    // Não é necessário usar React.use() para searchParams
 
     useEffect(() => {
-        const priceId = searchParams.get("priceId");
+        const priceId = searchParamsObj.get("priceId");
         if (!priceId || !user?.id) {
             console.log("Não tem priceId ou user.id", priceId, user?.id);
             return;
@@ -50,7 +53,7 @@ const RedirectPlan = () => {
         };
 
         createCheckoutSession();
-    }, [searchParams, user]);
+    }, [searchParamsObj, user]);
 
     return <Spinner />;
 };

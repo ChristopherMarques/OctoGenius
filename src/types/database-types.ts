@@ -136,7 +136,7 @@ export interface Plan {
   id: string; // UUID
   name: string; // TEXT
   features: string[]; // TEXT[]
-  price: string; // TEXT
+  price: number; // INTEGER
   stripe_price_id: string; // TEXT
   created_at: string; // TIMESTAMP WITH TIME ZONE
   updated_at: string; // TIMESTAMP WITH TIME ZONE

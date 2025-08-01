@@ -138,6 +138,9 @@ export default function DiagnosticPage() {
                 throw new Error(errorData.error || 'Falha ao enviar o resultado do teste.');
             }
 
+            const data = await response.json();
+            const studyPlanId = data.studyPlanId;
+
             let correctAnswers = 0;
             questions.forEach(q => {
                 const userAnswer = userAnswers.find(a => a.questionId === q.id);
@@ -147,6 +150,11 @@ export default function DiagnosticPage() {
             });
             setScore(correctAnswers);
             setStep('results');
+
+            // Armazenar o ID do plano de estudos para redirecionamento posterior
+            if (studyPlanId) {
+                localStorage.setItem('lastStudyPlanId', studyPlanId);
+            }
 
         } catch (err: any) {
             setError(err.message);
@@ -292,7 +300,19 @@ export default function DiagnosticPage() {
                             <p className="font-semibold text-xl">Badge Conquistada!</p>
                         </div>
                     </div>
-                    <Button onClick={() => router.push('/dashboard')} size="lg" className="w-[90%]" variant="outline">
+                    <Button 
+                        onClick={() => {
+                            const studyPlanId = localStorage.getItem('lastStudyPlanId');
+                            if (studyPlanId) {
+                                router.push(`/plano-estudos/${studyPlanId}`);
+                            } else {
+                                router.push('/dashboard');
+                            }
+                        }} 
+                        size="lg" 
+                        className="w-[90%]" 
+                        variant="outline"
+                    >
                         Ver meu novo Plano de Estudos
                     </Button>
                 </CardContent>
