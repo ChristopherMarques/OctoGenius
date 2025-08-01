@@ -17,9 +17,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
     }
 
+    // Verificar se o price_id existe na tabela plans
     const { data: plan, error } = await supabaseAdmin
       .from("plans")
-      .select("stripe_price_id")
+      .select("id, name, price")
       .eq("stripe_price_id", price_id)
       .single();
 

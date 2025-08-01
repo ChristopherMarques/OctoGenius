@@ -1,4 +1,3 @@
-import { ChatWidget } from "@/components/chat/chat-widget"
 import WorkingChatbot from "@/components/mvpblocks/working-chatbot"
 
 export default function ChatPage() {
