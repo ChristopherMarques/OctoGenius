@@ -1,11 +1,11 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { User } from "@/types/database-types";
 import { showError } from "@/lib/utils/show-logs";
 import { v4 as uuidv4 } from "uuid";
 
-const authOptions: AuthOptions = {
+export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -23,7 +23,7 @@ const authOptions: AuthOptions = {
   secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
-    maxAge: 1.5 * 60 * 60, // 1 hora e meia
+    maxAge: 1.5 * 60 * 60,
   },
   pages: {
     error: "/auth/error",
@@ -116,7 +116,3 @@ const authOptions: AuthOptions = {
     },
   },
 };
-
-const handler = NextAuth(authOptions);
-
-export { handler as GET, handler as POST };
