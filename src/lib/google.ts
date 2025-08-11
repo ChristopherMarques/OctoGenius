@@ -1,8 +1,8 @@
+import "server-only";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 
 export async function getGoogleAccessToken(userId: string) {
-  const { data } = await supabaseAdmin
-    .from("google_credentials")
+  const { data } = await supabaseAdmin    .from("google_credentials")
     .select("*")
     .eq("user_id", userId)
     .single();

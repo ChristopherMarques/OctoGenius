@@ -1,10 +1,10 @@
+import "server-only";
 import { AuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { User } from "@/types/database-types";
 import { showError } from "@/lib/utils/show-logs";
 import { v4 as uuidv4 } from "uuid";
-
 export const authOptions: AuthOptions = {
   providers: [
     GoogleProvider({
