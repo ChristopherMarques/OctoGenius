@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { supabaseAdmin } from "@/lib/supabaseAdmin";
+import { supabase } from "@/lib/supabase";
 
 interface UserContextType {
   user: any;
@@ -29,7 +29,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         return;
       }
 
-      const { data, error } = await supabaseAdmin
+      const { data, error } = await supabase
         .from("users")
         .select("*")
         .eq("email", email)
