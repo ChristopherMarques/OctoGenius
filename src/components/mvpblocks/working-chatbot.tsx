@@ -90,10 +90,15 @@ export default function WorkingChatbot() {
     onFinish: (message) => {
       const endTime = Date.now();
       const duration = (endTime - startTimeRef.current) / 1000;
-      setResponseTimes((prev) => ({
-        ...prev,
-        [message.id]: duration,
-      }));
+      setResponseTimes((prev) => {
+        const newTimes = { ...prev, [message.id]: duration };
+        const entries = Object.entries(newTimes);
+        if (entries.length > 10) {
+          const recentEntries = entries.slice(-10);
+          return Object.fromEntries(recentEntries);
+        }
+        return newTimes;
+      });
     },
   });
 
