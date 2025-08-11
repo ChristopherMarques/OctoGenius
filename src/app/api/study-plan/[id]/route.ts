@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabaseAdmin';
 import { getServerSession } from 'next-auth';
-
-export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
+import { authOptions } from '@/lib/authOptions';
+export async function GET(req: Request, { params }: any) {
   try {
      // 1. Autenticação e Validação
-    const session = await getServerSession();
+    const session = (await getServerSession(authOptions as any)) as any;
     const email = session?.user?.email;
 
     const { data } = await supabaseAdmin
@@ -20,8 +20,7 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
     }
     const userId = data.id;
 
-    // Usar await params para acessar propriedades no Next.js 15
-    const { id: planId } = await params;
+    const { id: planId } = params;
 
     // Validar o ID do plano
     if (!planId) {
