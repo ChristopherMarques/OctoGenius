@@ -10,6 +10,8 @@ export const useUser = (userEmail: string | null) => {
       if (!data.success) throw new Error(data.error);
       return data.data;
     },
+    staleTime: 1000 * 60 * 10,
+    refetchOnWindowFocus: false,
   });
 };
 
