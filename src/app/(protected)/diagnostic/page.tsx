@@ -129,7 +129,7 @@ export default function DiagnosticPage() {
         setIsSubmitting(true);
         setError(null);
         try {
-            const response = await fetch('/api/submit-diagnostic', {
+            const response = await fetch('/api/study/plan-from-diagnostic', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ questions, userAnswers }),

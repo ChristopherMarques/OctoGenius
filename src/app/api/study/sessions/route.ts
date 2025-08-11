@@ -4,21 +4,53 @@ import {
   UpdateStudySessionRequest,
 } from "@/types/api/requests";
 import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const planId = searchParams.get("planId");
+    const me = searchParams.get("me");
 
-    if (!planId) throw new Error("Plan ID is required");
+    if (planId) {
+      const { data, error } = await supabaseAdmin
+        .from("study_sessions")
+        .select("*")
+        .eq("study_plan_id", planId);
 
-    const { data, error } = await supabaseAdmin
-      .from("study_sessions")
-      .select("*")
-      .eq("study_plan_id", planId);
+      if (error) throw error;
+      return NextResponse.json({ success: true, data }, { status: 200 });
+    }
 
-    if (error) throw error;
-    return NextResponse.json({ success: true, data }, { status: 200 });
+    if (me) {
+      const session = await getServerSession(authOptions as any);
+      const userId = (session as any)?.user?.id as string | undefined;
+      if (!userId) {
+        return NextResponse.json({ success: false, error: "Não autenticado" }, { status: 401 });
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from("study_sessions")
+        .select("id, scheduled_date, duration_minutes, topic, task_type, status, study_plans!inner(user_id)")
+        .eq("study_plans.user_id", userId)
+        .order("scheduled_date", { ascending: true });
+
+      if (error) throw error;
+
+      const sessions = (data || []).map((s: any) => ({
+        id: s.id,
+        scheduled_date: s.scheduled_date,
+        duration_minutes: s.duration_minutes,
+        topic: s.topic,
+        task_type: s.task_type,
+        status: s.status,
+      }));
+
+      return NextResponse.json({ success: true, sessions }, { status: 200 });
+    }
+
+    return NextResponse.json({ success: false, error: "Parâmetros inválidos" }, { status: 400 });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: (error as Error).message },

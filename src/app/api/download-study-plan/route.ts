@@ -149,7 +149,7 @@ export async function POST(req: NextRequest) {
       doc.text(`Cronograma da Semana ${weekNumber}`, pageWidth / 2, yPosition, { align: 'center' });
       yPosition += 15;
 
-      const tableData = sessionsByWeek[weekNumber].map(s => [
+      const tableData = sessionsByWeek[weekNumber].map((s: any) => [
         s.day_of_week || '',
         s.subject?.name || 'N/A',
         s.topic || '',
@@ -179,7 +179,7 @@ export async function POST(req: NextRequest) {
     });
 
     // --- FUNÇÃO DE RODAPÉ (Corrigida) ---
-    const pageCount = doc.internal.getNumberOfPages(); // <-- MUDANÇA 3
+    const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);

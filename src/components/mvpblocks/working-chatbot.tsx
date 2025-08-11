@@ -5,7 +5,7 @@ import { useCallback, useRef, useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/design-utils';
 import { useAutoResizeTextarea } from '@/hooks/use-auto-resize-textarea';
-import { useChat } from '@ai-sdk/react';
+import { useChat } from 'ai/react';
 import Markdown from 'react-markdown';
 import Image from 'next/image';
 import ChatImage from "@/assets/logos/logo-chat.png";
@@ -87,7 +87,7 @@ export default function WorkingChatbot() {
     error,
   } = useChat({
     api: '/api/chat',
-    onFinish: (message) => {
+    onFinish: (message: any) => {
       const endTime = Date.now();
       const duration = (endTime - startTimeRef.current) / 1000;
       setResponseTimes((prev) => ({
@@ -123,7 +123,7 @@ export default function WorkingChatbot() {
     <div className="mx-auto flex h-full w-full max-w-4xl flex-col pb-0.5">
       <div className="h-full flex-1 overflow-y-auto rounded-b-md rounded-t-xl border border-primary/20 bg-card/40 p-4 text-sm leading-6 text-card-foreground shadow-md sm:text-base sm:leading-7">
         {messages.length > 0 ? (
-          messages.map((m) => {
+          messages.map((m: any) => {
             return (
               <div key={m.id} className="mb-4 whitespace-pre-wrap">
                 {m.role === 'user' ? (

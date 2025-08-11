@@ -208,8 +208,8 @@ export async function POST(req: NextRequest) {
     // 8. Criar sessões de estudo no banco de dados
     const studySessions: StudySession[] = [];
     
-    studyPlanData.cronograma.forEach((semana) => {
-      semana.sessoes.forEach((sessao) => {
+    studyPlanData.cronograma.forEach((semana: any) => {
+      semana.sessoes.forEach((sessao: any) => {
         const subject = subjects.find((s) => s.name === sessao.materia);
         if (subject) {
           // Calcular a data com base na semana e dia
@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
 
 // Função auxiliar para converter dia da semana em offset numérico
 function getDayOffset(dayName: string): number {
-  const days = {
+  const days: Record<string, number> = {
     "Segunda-feira": 0,
     "Terça-feira": 1,
     "Quarta-feira": 2,
@@ -270,6 +270,5 @@ function getDayOffset(dayName: string): number {
     "Sábado": 5,
     "Domingo": 6,
   };
-  
-  return days[dayName] || 0;
+  return days[dayName] ?? 0;
 }

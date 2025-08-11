@@ -2,60 +2,64 @@
 
 import { Spinner } from "@/components/ui/spinner";
 import { useUser } from "@/contexts/user-context";
-import { checkPlan } from "@/lib/utils/check-plan";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const RedirectPlan = () => {
-    const searchParamsObj = useSearchParams();
-    const { user } = useUser();
-    
-    // Acessar os valores de searchParams no Next.js 15 diretamente
-    // Não é necessário usar React.use() para searchParams
+  const searchParamsObj = useSearchParams();
+  const { user } = useUser();
 
-    useEffect(() => {
-        const priceId = searchParamsObj.get("priceId");
-        if (!priceId || !user?.id) {
-            console.log("Não tem priceId ou user.id", priceId, user?.id);
-            return;
+  useEffect(() => {
+    const priceId = searchParamsObj.get("priceId");
+    if (!priceId || !user?.id) {
+      console.log("Não tem priceId ou user.id", priceId, user?.id);
+      return;
+    }
+
+    const createCheckoutSession = async () => {
+      try {
+        const resPlan = await fetch("/api/check-plan", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: user?.id,
+            priceId,
+          }),
+        });
+        const { alreadyHasPlan } = await resPlan.json();
+
+        if (alreadyHasPlan) {
+          window.location.href = "/plan-already-active";
+          return;
         }
 
-        const createCheckoutSession = async () => {
-            const { alreadyHasPlan } = await checkPlan(user?.id, priceId);
+        const res = await fetch("/api/create-checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: user?.id,
+            price_id: priceId,
+          }),
+        });
 
-            try {
-                if (alreadyHasPlan) {
-                    window.location.href = "/plan-already-active";
-                    return;
-                }
+        const data = await res.json();
 
-                const res = await fetch("/api/create-checkout", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        user_id: user?.id,
-                        price_id: priceId,
-                    }),
-                });
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+        } else {
+          console.error("Erro ao obter URL do checkout.");
+          window.location.href = "/";
+        }
+      } catch (error) {
+        console.error("Erro no checkout:", error);
+        window.location.href = "/";
+      }
+    };
 
-                const data = await res.json();
+    createCheckoutSession();
+  }, [searchParamsObj, user]);
 
-                if (data.checkout_url) {
-                    window.location.href = data.checkout_url;
-                } else {
-                    console.error("Erro ao obter URL do checkout.");
-                    window.location.href = "/";
-                }
-            } catch (error) {
-                console.error("Erro no checkout:", error);
-                window.location.href = "/";
-            }
-        };
-
-        createCheckoutSession();
-    }, [searchParamsObj, user]);
-
-    return <Spinner />;
+  return <Spinner />;
 };
 
 export default RedirectPlan;

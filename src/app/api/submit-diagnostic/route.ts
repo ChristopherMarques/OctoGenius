@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
     const subjectMap = new Map(subjectsList.map((s) => [s.name.toLowerCase(), s.id]));
     const fallbackSubjectId = '00000000-0000-0000-0000-000000000000'; // ID da matéria "Revisão Geral"
 
-    const sessionsToInsert = generatedPlan.schedule.map((session) => {
+    const sessionsToInsert = generatedPlan.schedule.map((session: any) => {
       const sessionDate = new Date();
       sessionDate.setDate(sessionDate.getDate() + (session.week - 1) * 7);
 

@@ -8,6 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUser } from "@/contexts/user-context";
 import { ArrowRight, BarChart3, BookOpen, Brain, Calendar, CheckCircle, Clock, Trophy } from "lucide-react";
+import { StudyCalendar } from "@/components/dashboard/study-calendar";
+import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Pie, PieChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
@@ -50,7 +52,19 @@ const CORES = ["hsl(var(--chart-1))", "hsl(var(--chart-2))", "hsl(var(--chart-3)
 export default function DashboardPage() {
   const [atividadesConcluidas, setAtividadesConcluidas] = useState<number[]>([1]);
   const { user } = useUser();
+  const { toast } = useToast();
   const name = user?.full_name?.split(" ")[0];
+
+  const syncCalendar = async () => {
+    const res = await fetch("/api/calendar/sync", { method: "POST" });
+    if (res.ok) {
+      const j = await res.json();
+      toast({ title: "Sincronizado", description: `Criados ${j.created} eventos no Google Calendar.` });
+    } else {
+      const t = await res.json().catch(() => ({}));
+      toast({ title: "Erro ao sincronizar", description: t?.error || "Tente novamente.", variant: "destructive" });
+    }
+  };
 
   const marcarConcluida = (id: number) => {
     if (atividadesConcluidas.includes(id)) {
@@ -66,6 +80,16 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-lg">Meu Calendário de Estudos</CardTitle>
+              <CardDescription>Visualize suas sessões de estudo</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <StudyCalendar />
+            </CardContent>
+          </Card>
+
       <Header />
       <main className="flex-1 py-8 sm:py-12 bg-muted/30">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl 2xl:max-w-[1400px]">
@@ -74,10 +98,11 @@ export default function DashboardPage() {
               <h1 className="text-3xl font-bold">Olá, {name}!</h1>
               <p className="text-muted-foreground">Bem-vindo ao seu painel de estudos personalizado</p>
             </div>
-            <div className="mt-4 md:mt-0">
+            <div className="mt-4 md:mt-0 flex gap-2">
               <Button asChild>
                 <Link href="/plano-estudos">Ver Plano Completo</Link>
               </Button>
+              <Button variant="outline" onClick={syncCalendar}>Sincronizar com Google Calendar</Button>
             </div>
           </div>
 

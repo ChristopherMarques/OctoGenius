@@ -1,0 +1,3 @@
+ALTER TABLE study_sessions
+  ADD COLUMN IF NOT EXISTS topic TEXT,
+  ADD COLUMN IF NOT EXISTS task_type TEXT;

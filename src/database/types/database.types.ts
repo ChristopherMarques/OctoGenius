@@ -217,6 +217,8 @@ export interface Database {
           duration_minutes: number | null;
           status: "pending" | "completed" | "missed";
           performance_rating: number | null;
+          topic: string | null;
+          task_type: string | null;
         };
         Insert: {
           id?: string;
@@ -227,6 +229,8 @@ export interface Database {
           duration_minutes?: number | null;
           status: "pending" | "completed" | "missed";
           performance_rating?: number | null;
+          topic?: string | null;
+          task_type?: string | null;
         };
         Update: {
           id?: string;
@@ -237,6 +241,8 @@ export interface Database {
           duration_minutes?: number | null;
           status?: "pending" | "completed" | "missed";
           performance_rating?: number | null;
+          topic?: string | null;
+          task_type?: string | null;
         };
       };
       user_answers: {
@@ -439,6 +445,32 @@ export interface Database {
           id?: string;
           user_id?: string;
           plan_id?: string;
+      google_credentials: {
+        Row: {
+          user_id: string;
+          access_token: string | null;
+          refresh_token: string | null;
+          scope: string | null;
+          token_type: string | null;
+          expiry_date: string | null;
+        };
+        Insert: {
+          user_id: string;
+          access_token?: string | null;
+          refresh_token?: string | null;
+          scope?: string | null;
+          token_type?: string | null;
+          expiry_date?: string | null;
+        };
+        Update: {
+          user_id?: string;
+          access_token?: string | null;
+          refresh_token?: string | null;
+          scope?: string | null;
+          token_type?: string | null;
+          expiry_date?: string | null;
+        };
+      };
           status?: "active" | "canceled" | "expired";
           stripe_subscription_id?: string | null;
           payment_status?: "paid" | "unpaid" | "pending" | null;
